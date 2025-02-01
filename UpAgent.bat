@@ -846,10 +846,10 @@ cls
 echo There was an error while updating the Operating System.
 echo The backup of the OperatingSystem.bat file was deleted during the process.
 echo As a result, the OS update has failed, and now the OperatingSystem.bat file is missing.
-echo 
+echo.
 echo To resolve this issue, you need to manually reinstall the OperatingSystem.bat file.
 echo Please do not worry about other core system files; they are unaffected.
-echo 
+echo.
 echo Follow these steps to reinstall the OperatingSystem.bat file:
 echo 1. Visit https://fos-debug.github.io/fujiOS/OperatingSystem.bat to
 echo Download the latest version of OperatingSystem.bat.
