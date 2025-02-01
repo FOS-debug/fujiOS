@@ -771,6 +771,10 @@ echo.
 echo.
 echo.
 if not exist icd.ini goto PSST
+set "behindb=%REMOTE_VERSION%"
+set /a behindb-=%VERSION2%
+if %behindb% geq 10 call :updateq
+
 if "%REMOTE_VERSION%" neq "%VERSION2%" (
     if "%UPDATE%"=="2" goto Updateing
 )
@@ -862,6 +866,7 @@ if %ERRORLEVEL%==2 goto REGISTERACC
 goto loginorregister
 
 :GIRT
+%colr%
 cls
 echo Welcome to the Internet!
 echo You are now on the Start page.
@@ -1068,15 +1073,18 @@ echo Organization: %organisation%
 
 
 echo %DATE%
+set "behindb=%REMOTE_VERSION%"
+set /a behindb-=%VERSION2%
+
 if %update%==1 (
 echo.
-echo [33m FujiOS v%REMOTE_VERSION% Is available [97m
+echo [34m FujiOS v%REMOTE_VERSION% Is available [97m
 echo.
 )
-
-
+if %behindb% geq 5 echo [31m Please Update ASAP! [97m
+if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [97m
 echo ==================================
-echo         FUJIOS MAIN MENU
+echo         FUJIOS v%VERSION2%
 echo ==================================
 echo.
 echo 01. Browser
@@ -1177,7 +1185,7 @@ if %REMOTE_VERSION% equ %VERSION2% (
     pause
 ) else (
     echo A new update is available. [Current version: v%VERSION2%, Latest version: v%REMOTE_VERSION%]
-    goto UPDATEQ
+    call :UPDATEQ
 )
 goto FUJISETTINGS
 
@@ -1187,7 +1195,7 @@ echo Do You Want To Install Update?
 choice /c yn /n /M "(yn) "
 set "choice=%errorlevel%"
 if %choice%==1 goto updateing
-if %choice%==2 goto FUJISETTINGS
+if %choice%==2 exit /b
 goto FUJISETTINGS
 
 :updateing
