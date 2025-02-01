@@ -5,12 +5,6 @@
 :: Chatgpt                                                                        ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @echo off
-
-set /p KVERSION=<KVersion.txt
-set "OS=FujiOS"
-set /p VERSION=<version.txt
-set "ALTOS=FujiOS"
-set "ALTVERSION=20"
 if exist "License.txt" goto restart
 echo LICENSE REVOKED
 pause
@@ -80,6 +74,13 @@ if exist "%documentsPath%\Bootifier.dll" (
 :Check3
 
 :S11
+set /p KVERSION=<KVersion.txt
+set "OS=FujiOS"
+set /p VERSION=<version.txt
+set "ALTOS=FujiOS"
+set "ALTVERSION=20"
+goto Updater
+:S1132
 cls
 title FujiOS Dual Boot Manager
 echo =======================================
@@ -413,12 +414,14 @@ timeout /nobreak /t 13 >nul
 goto Check1
 
 :UPDATER
+set /p KVERSION=<KVersion.txt
 set SERVER_URL=https://fos-debug.github.io/fujiOS/KERNEL/
 set REMOTE_VERSION_FILE=%SERVER_URL%/KVersion.txt
 set UPDATE_FILE=KERNEL32.BAT
 set BACKUP_FILE=KERNEL32.BACKUP
 
 :: Fetch remote version info
+
 for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
 
 :: Check if we got a valid response
@@ -427,13 +430,14 @@ if "%REMOTE_VERSION%"=="" (
     pause
     goto ERROR1233432
 )
-if %REMOTE_VERSION% GTR %VERSION2% (
-    echo goto UPDATENOW
 
+
+if "%REMOTE_VERSION%" GTR "%KVERSION%" (
+    goto UPDATENOW
 ) else (
-    exit /b
+    goto S1132
 )
-
+goto UPDATER
 :UPDATENOW
 cls
 echo.
@@ -1210,6 +1214,7 @@ echo ==================================
 timeout /t 3 /nobreak >nul
 echo.
 echo.
+echo %REMOTE_VERSION%>KVersion.txt
 :: Backup existing file if it exists
 if exist %UPDATE_FILE% (
     rename %UPDATE_FILE% %BACKUP_FILE%
@@ -1231,7 +1236,7 @@ if not exist %UPDATE_FILE% (
     pause
     exit
 )
-echo %REMOTE_VERSION%>KVersion.txt
+
 echo Update successful!
 if exist %BACKUP_FILE% del %BACKUP_FILE%
 pause
