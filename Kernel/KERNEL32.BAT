@@ -5,6 +5,8 @@
 :: Chatgpt                                                                        ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @echo off
+
+set /p KVERSION=<KVersion.txt
 set "OS=FujiOS"
 set /p VERSION=<version.txt
 set "ALTOS=FujiOS"
@@ -409,6 +411,860 @@ echo.
 echo Undoing Changes...
 timeout /nobreak /t 13 >nul
 goto Check1
+
+:UPDATER
+set SERVER_URL=https://fos-debug.github.io/fujiOS/KERNEL/
+set REMOTE_VERSION_FILE=%SERVER_URL%/KVersion.txt
+set UPDATE_FILE=KERNEL32.BAT
+set BACKUP_FILE=KERNEL32.BACKUP
+
+:: Fetch remote version info
+for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
+
+:: Check if we got a valid response
+if "%REMOTE_VERSION%"=="" (
+    echo Unable to retrieve Version Info.
+    pause
+    goto ERROR1233432
+)
+if %REMOTE_VERSION% GTR %VERSION2% (
+    echo goto UPDATENOW
+
+) else (
+    exit /b
+)
+
+:UPDATENOW
+cls
+echo.
+echo.
+echo ==================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo ==================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #
+echo ==================================
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##
+echo ==================================
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###
+echo ==================================
+timeout /t 5 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ####
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #####
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ######
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #######
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ########
+echo ==================================
+timeout /t 7 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #########
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##########
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###########
+echo ==================================
+timeout /t 4 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ############
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #############
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##############
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###############
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ################
+echo ==================================
+timeout /t 3 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##################
+echo ==================================
+timeout /t 4 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ####################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #####################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ######################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #######################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ########################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #########################
+echo ==================================
+timeout /t 5 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##########################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###########################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ############################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo #############################
+echo ==================================
+timeout /t 1 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ##############################
+echo ==================================
+timeout /t 5 /nobreak >nul
+cls
+echo.
+echo.
+echo =================================
+echo  ******** *******   ****     ****
+echo /**///// /**////** /**/**   **/**
+echo /**      /**   /** /**//** ** /**
+echo /******* /*******  /** //***  /**
+echo /**////  /**///**  /**  //*   /**
+echo /**      /**  //** /**   /    /**
+echo /**      /**   //**/**        /**
+echo //       //     // //         //  
+echo =================================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+echo ==================================
+echo ###############################
+echo ==================================
+timeout /t 3 /nobreak >nul
+echo.
+echo.
+echo %REMOTE_VERSION%>Version.txt
+:: Backup existing file if it exists
+if exist %UPDATE_FILE% (
+    rename %UPDATE_FILE% %BACKUP_FILE%
+)
+:: Download new version
+curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
+
+:: Verify download success
+if not exist %UPDATE_FILE% (
+    echo Download failed! Restoring backup...
+    if exist %BACKUP_FILE% (
+        rename %BACKUP_FILE% %UPDATE_FILE%
+    ) else (
+        echo Unable To Find Backup File
+        pause
+        goto ERROR234
+    )
+    echo Update failed. Please try again later.
+    pause
+    exit
+)
+
+echo Update successful!
+if exist %BACKUP_FILE% del %BACKUP_FILE%
+pause
+exit /b
+
+
+
+:ERROR234
+cls
+echo There was an error while updating the KERNEL.
+echo The backup of the KERNEL32.bat file was deleted during the process.
+echo As a result, the FIRMWARE update has failed, and now the KERNEL32.bat file is missing.
+echo 
+echo To resolve this issue, you need to manually reinstall the KERNEL32.bat file.
+echo Please do not worry about other core system files; they are unaffected.
+echo 
+echo Follow these steps to reinstall the KERNEL32.bat file:
+echo 1. Visit %SERVER_URL%/%UPDATE_FILE% to
+echo Download the latest version of KERNEL32.bat.
+echo 2. Place the downloaded file in the current directory.
+echo 3. Restart the FIRMWARE to complete the installation.
+timeout /t 9999 /nobreak >nul
+goto ERROR2
+
+
+
+:ERROR1233432
+cls
+echo ERROR Retreiving Version Info
+echo Please Download Update Manually
+pause
+exit
 
 
 
