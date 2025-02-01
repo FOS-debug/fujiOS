@@ -7,6 +7,7 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
+if exist UpAgent.cmd ren UpAgent.cmd UpAgent.bat
 set "hibernate=0"
 set "RESTARTATTEMPTS=0"
 set "ErrorL2=0"
