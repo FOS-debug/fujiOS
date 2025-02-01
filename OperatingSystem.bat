@@ -1086,7 +1086,11 @@ echo 04. Suspicious Logins
 echo 05. AntiVirus
 echo 06. Game Station-S
 echo 07. Fuji Drive Tools
-echo 08. Settings
+if %update% neq 0 (
+    echo [34m08. Settings[97m
+) else (
+    echo 08. Settings
+)
 echo 09. Shutdown Menu
 if "%OS2%"=="FujiOS Developer Build" (
     echo 10. Developer Tools*
@@ -1132,7 +1136,11 @@ echo 01. Color
 echo 02. Change BSOD Type
 echo 03. Change Credentials
 echo 04. Factory RESET
-echo 05. Update
+if %update% neq 0 (
+    echo [34m05. Update[97m
+) else (
+    echo 05. Update
+)
 echo 06. Back
 echo =============================
 echo.
