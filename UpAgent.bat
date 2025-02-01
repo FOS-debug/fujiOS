@@ -825,6 +825,7 @@ echo Update successful!
 if exist %OLD_FILE% del %OLD_FILE%
 if exist %BACKUP_FILE% ren %BACKUP_FILE% %OLD_FILE%
 pause
+start cmd /k call 6bit.bat && call OperatingSystem.bat
 exit /b
 :ERROR5
 echo Unable to find Operating System
