@@ -3255,12 +3255,10 @@ echo.
 echo [33mUPDATING FIRMWARE[0m
 echo [33mDO NOT CLOSE THIS SCREEN[0m
 echo.
-if exist UpAgent.cmd
+
     del UpAgent.bat
     ren UpAgent.cmd UpAgent.bat
-) else (
-    goto FINISHUPDATING
-)
+timeout /t 5 /nobreak >nul
 goto PREBootupFujios
 :EOCF
 set "bsodcode=END_OF_CODE"
