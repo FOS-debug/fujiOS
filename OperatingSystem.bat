@@ -3259,7 +3259,7 @@ echo.
     del UpAgent.bat
     ren UpAgent.cmd UpAgent.bat
 timeout /t 5 /nobreak >nul
-goto PREBootupFujios
+goto Breakpoint12321
 :EOCF
 set "bsodcode=END_OF_CODE"
 goto Crash
