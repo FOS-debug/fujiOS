@@ -1149,7 +1149,8 @@ if %update% neq 0 (
 ) else (
     echo 05. Update
 )
-echo 06. Back
+echo 06. System Restore
+echo 07. Back
 echo =============================
 echo.
 choice /c 123456 /n /M ">"
@@ -1159,11 +1160,23 @@ if "%choice%"=="2" goto BSODTYPESETTING
 if "%choice%"=="3" goto password132
 if "%choice%"=="4" goto FactoryReset132
 if "%choice%"=="5" goto UpdateCheck
-if "%choice%"=="6" goto File3242
+if "%choice%"=="6" goto sysRestore
+
+if "%choice%"=="7" goto File3242
 goto FUJISETTINGS
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
+
+:sysRestore
+if not exist ReAgent.bat (
+set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
+goto Crash
+)
+echo systemrstore.log > systemrstore.log
+start ReAgent.bat
+exit /b
+
 
 :UpdateCheck
 cls
