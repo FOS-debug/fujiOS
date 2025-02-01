@@ -1210,7 +1210,6 @@ echo ==================================
 timeout /t 3 /nobreak >nul
 echo.
 echo.
-echo %REMOTE_VERSION%>Version.txt
 :: Backup existing file if it exists
 if exist %UPDATE_FILE% (
     rename %UPDATE_FILE% %BACKUP_FILE%
@@ -1232,7 +1231,7 @@ if not exist %UPDATE_FILE% (
     pause
     exit
 )
-
+echo %REMOTE_VERSION%>KVersion.txt
 echo Update successful!
 if exist %BACKUP_FILE% del %BACKUP_FILE%
 pause
