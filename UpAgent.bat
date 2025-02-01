@@ -804,6 +804,8 @@ echo.
 :: Download new version
 curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
 curl -s -o UpAgent.cmd %SERVER_URL%/%UPDATER_FILE%
+curl -s -o ReAgent.bat %SERVER_URL%/ReAgent.bat
+
 
 :: Verify download success
 if not exist %UPDATE_FILE% (
