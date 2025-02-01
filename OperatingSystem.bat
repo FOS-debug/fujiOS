@@ -18,6 +18,19 @@ set startuprepair=false
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 if not exist %mainfilepath% mkdir %mainfilepath%
 
+set /p valid_username=<%mainfilepath%\user.pkg
+set "output1=%valid_username%"
+:removeSpaces1
+for /f "delims=" %%A in ("%output1%") do set "output1=%%A"
+if "%output1:~-1%"==" " (
+    set "output1=%output1:~0,-1%"
+    goto removeSpaces1
+)
+set "valid_username=%output1%"
+
+echo %output1%>%mainfilepath%\user.pkg
+echo "%output1%"
+pause
 
 if not exist %mainfilepath%\domain.pkg (
    set "domain=%DefaultDomain%"
@@ -343,7 +356,7 @@ goto PSST
 
 
 :PSST
-set SERVER_URL=http://fujios.s3-website.us-east-2.amazonaws.com
+set SERVER_URL=https://fos-debug.github.io/fujiOS
 set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
 
 :: Fetch remote version info
@@ -809,6 +822,9 @@ goto Crash
 :start1232
 goto loginorregister
 
+
+
+
 :start1
 
 if exist "%documentsFolder%\BOOTSEC.sys" (
@@ -910,7 +926,6 @@ if "%input_domain%" neq "%domain%" (
 
 
 
-if "%Root%"=="true" goto ABORT121
 if "%username%" neq "%valid_username%" goto login
 if "%password%"=="%valid_password%" goto GrantedACC
 if "%password%"=="%targetNumber%" goto GrantedACC
@@ -1139,7 +1154,7 @@ goto Crash
 cls
 echo Checking for updates, please wait...
 timeout /t 3 /nobreak >nul
-set SERVER_URL=http://fujios.s3-website.us-east-2.amazonaws.com
+set SERVER_URL=https://fos-debug.github.io/fujiOS
 set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
 :: Fetch remote version info
 for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
@@ -1301,7 +1316,7 @@ set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
 :DEHIBERNATE
-set SERVER_URL=http://fujios.s3-website.us-east-2.amazonaws.com
+set SERVER_URL=https://fos-debug.github.io/fujiOS
 set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
 
 :: Fetch remote version info
