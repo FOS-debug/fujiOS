@@ -29,8 +29,7 @@ if "%output1:~-1%"==" " (
 set "valid_username=%output1%"
 
 echo %output1%>%mainfilepath%\user.pkg
-echo "%output1%"
-pause
+
 
 if not exist %mainfilepath%\domain.pkg (
    set "domain=%DefaultDomain%"
