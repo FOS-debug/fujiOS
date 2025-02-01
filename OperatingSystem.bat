@@ -1153,7 +1153,7 @@ echo 06. System Restore
 echo 07. Back
 echo =============================
 echo.
-choice /c 123456 /n /M ">"
+choice /c 1234567 /n /M ">"
 set "choice=%errorlevel%"
 if "%choice%"=="1" goto Settings101
 if "%choice%"=="2" goto BSODTYPESETTING
