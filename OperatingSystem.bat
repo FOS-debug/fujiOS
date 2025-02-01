@@ -3184,8 +3184,7 @@ cls
 echo Welcome %username%
 pause
 cls
-goto Settings101
-
+goto Breakpoint
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
