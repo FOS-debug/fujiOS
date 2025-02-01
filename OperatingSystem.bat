@@ -7,10 +7,7 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
-if exist UpAgent.cmd (
-del UpAgent.bat
-ren UpAgent.cmd UpAgent.bat
-)
+if exist UpAgent.cmd goto FINISHUPDATING
 set "hibernate=0"
 set "RESTARTATTEMPTS=0"
 set "ErrorL2=0"
@@ -3230,6 +3227,41 @@ echo.
 pause
 goto STARTUPREPAIR
 
+:FINISHUPDATING
+echo Finishing Updates . . .
+timeout /t 3 /nobreak >nul
+if not exist UpAgent.bat (
+set "bsodcode=UPAGENT_BOOT_INITIALIZATION_FAILED"
+goto Crash
+)
+cls
+echo.
+echo.
+echo ==============================
+echo ********   *******    ******** 
+echo /**/////   **/////**  **////// 
+echo /**       **     //**/**       
+echo /******* /**      /**/*********
+echo /**////  /**      /**////////**
+echo /**      //**     **        /**
+echo /**       //*******   ******** 
+echo //         ///////   ////////  
+echo ==============================
+echo.
+echo   PineApple Technologies Inc
+echo    Fuji Operating System
+echo     Copyright 2022-2025
+echo.
+echo [33mUPDATING FIRMWARE[0m
+echo [33mDO NOT CLOSE THIS SCREEN[0m
+echo.
+if exist UpAgent.cmd
+    del UpAgent.bat
+    ren UpAgent.cmd UpAgent.bat
+) else (
+    goto FINISHUPDATING
+)
+goto PREBootupFujios
 :EOCF
 set "bsodcode=END_OF_CODE"
 goto Crash
