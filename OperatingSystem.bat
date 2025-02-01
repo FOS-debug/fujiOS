@@ -1151,10 +1151,11 @@ if %update% neq 0 (
     echo 05. Update
 )
 echo 06. System Restore
-echo 07. Back
+echo 07. Repair Files
+echo 08. Back
 echo =============================
 echo.
-choice /c 1234567 /n /M ">"
+choice /c 12345678 /n /M ">"
 set "choice=%errorlevel%"
 if "%choice%"=="1" goto Settings101
 if "%choice%"=="2" goto BSODTYPESETTING
@@ -1162,12 +1163,22 @@ if "%choice%"=="3" goto password132
 if "%choice%"=="4" goto FactoryReset132
 if "%choice%"=="5" goto UpdateCheck
 if "%choice%"=="6" goto sysRestore
-
-if "%choice%"=="7" goto File3242
+if "%choice%"=="8" goto sysRepair
+if "%choice%"=="8" goto File3242
 goto FUJISETTINGS
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
+
+:sysRepair
+if not exist ReAgent.bat (
+set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
+goto Crash
+)
+echo systemrpair.log > systemrpair.log
+start ReAgent.bat
+exit /b
+
 
 :sysRestore
 if not exist ReAgent.bat (
@@ -1512,6 +1523,9 @@ if errorlevel 1 (
 )
 
 :Mail1
+echo MAIL CLIENT DISABLED
+pause
+goto File_Manager
 %Colr%
 cls
 echo Mail
@@ -3254,9 +3268,8 @@ echo.
 echo [33mUPDATING FIRMWARE[0m
 echo [33mDO NOT CLOSE THIS SCREEN[0m
 echo.
-
-    del UpAgent.bat
-    ren UpAgent.cmd UpAgent.bat
+del UpAgent.bat
+ren UpAgent.cmd UpAgent.bat
 timeout /t 5 /nobreak >nul
 goto Breakpoint12321
 :EOCF
