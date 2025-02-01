@@ -813,7 +813,7 @@ if not exist %UPDATE_FILE% (
     ) else (
         echo Unable To Find Backup File
         pause
-        goto ERROR2
+        goto ERROR5
     )
     echo Update failed. Please try again later.
     pause
@@ -826,8 +826,19 @@ if exist %OLD_FILE% del %OLD_FILE%
 if exist %BACKUP_FILE% ren %BACKUP_FILE% %OLD_FILE%
 pause
 exit /b
-
-
+:ERROR5
+echo Unable to find Operating System
+echo Press Any Key To Start SysRestore
+pause >nul
+echo >systemrstore.log
+call ReAgent.bat
+if not exist %UPDATE_FILE% goto ERROR2
+echo SYS RESTORE COMPLETED SUCCESSFULLY
+echo.
+echo PRESS ANY KEY TO RESTART UPDATE
+pause >nul
+start UpAgent.bat
+exit
 
 :ERROR2
 cls
