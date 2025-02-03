@@ -108,7 +108,7 @@ set "ErrorL=0"
 set "lastpage=DiskWriteTest"
 echo Performing write-protection test...
 echo %random% >>wtest.tmp
-ping localhost -n 2 >nul
+ping localhost -n 1 >nul
 
 if %ERRORLEVEL%==1 (
     set "bsodcode=DISK_WRITE_TEST_FAIL"
@@ -394,7 +394,7 @@ echo     Copyright 2022-2025
 echo.
 echo.
 echo.
-ping localhost -n 3 >nul
+ping localhost -n 1 >nul
 if %RESTARTATTEMPTS% GTR 6 goto ERR16
 if %RESTARTATTEMPTS% GTR 5 goto ERR17
 if %RESTARTATTEMPTS% GTR 4 goto STARTUPREPAIR
@@ -437,7 +437,7 @@ if %REMOTE_VERSION% GTR %VERSION2% (
 if %REMOTE_VERSION% == HOTFIX (
     set UPDATE=2
 ) 
-timeout /t 5 /nobreak >nul
+timeout /t 2 /nobreak >nul
 :skipupdate
 cls
 echo.
@@ -918,18 +918,20 @@ goto loginorregister
 :GIRT
 %colr%
 cls
-echo Welcome to the Internet!
-echo You are now on the Start page.
-echo.
-echo INTRODUCING FUJI DRIVE!
-echo Fuji Drive Is A New
-echo Feature where you
-echo can save your files
-echo and even if fujiOS
-echo is deleted, your files
-echo get saved Because they
-echo are saved locally!
-echo.
+set CHANGLOG_URL=https://fos-debug.github.io/fujiOS/CHANGELOG.txt
+
+curl -s -o changelog.txt %CHANGLOG_URL%
+
+if exist changelog.txt (
+    echo CHANGELOG:
+    echo.
+    type changelog.txt
+    echo.
+) else (
+    echo Failed to download the changelog.
+)
+
+del changelog.txt
 pause
 goto File_Manager
 
