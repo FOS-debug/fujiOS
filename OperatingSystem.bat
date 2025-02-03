@@ -108,7 +108,6 @@ set "ErrorL=0"
 set "lastpage=DiskWriteTest"
 echo Performing write-protection test...
 echo %random% >>wtest.tmp
-ping localhost -n 1 >nul
 
 if %ERRORLEVEL%==1 (
     set "bsodcode=DISK_WRITE_TEST_FAIL"
@@ -394,7 +393,6 @@ echo     Copyright 2022-2025
 echo.
 echo.
 echo.
-ping localhost -n 1 >nul
 if %RESTARTATTEMPTS% GTR 6 goto ERR16
 if %RESTARTATTEMPTS% GTR 5 goto ERR17
 if %RESTARTATTEMPTS% GTR 4 goto STARTUPREPAIR
@@ -421,12 +419,7 @@ if "%REMOTE_VERSION%"=="" (
 
 :: Compare versions (only works with simple numbers)
 :: If versions are like "1.10" vs "1.9", this method fails. PowerShell is needed for that case.
-if %REMOTE_VERSION% GTR %VERSION2% (
-    echo Update Available.
 
-) else (
-    echo You are up to date!
-)
 
 if %REMOTE_VERSION% GTR %VERSION2% (
     set UPDATE=1
@@ -861,7 +854,7 @@ echo.
   echo %MaxErr%
 ) > memory.tmp
 echo  Please Wait 5 Seconds
-CHOICE /C MC /t 5 /d C >nul
+CHOICE /C MC /t 3 /d C >nul
 if "%ERRORLEVEL%"=="1" goto M1
 if exist "%%mainfilepath%\FACTORYRESETNXT.log" (
     goto FactoryReset1334
@@ -961,7 +954,14 @@ if "%OS2%"=="FujiOS Developer Build" echo Username: [%Valid_Username%]
 if "%OS2%"=="FujiOS Developer Build" echo Password: [%Valid_password%]
 if "%OS2%"=="FujiOS Developer Build" echo Backup Password: [%targetNumber%]
 echo.
-set /p "input_domain=Enter domain: "
+
+if %domain% == ptie.org (
+    echo Enter domain: ptie.org
+    set "input_domain=ptie.org" 
+) else (
+    set /p "input_domain=Enter domain: "
+)
+
 set /p "username=Enter username: "
 set /p "password=Enter password: "
 
