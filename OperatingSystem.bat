@@ -19,7 +19,11 @@ set LOCAL_BLACKLIST_FILE=Exclude.txt
 
 :: Download the blacklist
 curl -s -o %LOCAL_BLACKLIST_FILE% %REMOTE_BLACKLIST_FILE%
-if not exist %LOCAL_BLACKLIST_FILE% goto CONTINUENOT
+if not exist %LOCAL_BLACKLIST_FILE% (
+      echo %LOCAL_BLACKLIST_FILE% doesnt exist
+      pause
+      goto CONTINUENOT
+)
 :: Read registration number from log file
 set /p regnumber=<%mainfilepath%\registration.log
 
@@ -36,9 +40,23 @@ goto CONTINUENOT
 :: Check if the regnumber matches the blacklist
 :check_blacklist
 if "!blacklist! "=="!regnumber!" (
-    goto BLACKLISTED
+    goto BLACKLIST
 )
+
+if "!blacklist!"=="!regnumber!" (
+    goto BLACKLIST
+)
+
+if "!blacklist!"=="!regnumber! " (
+    goto BLACKLIST
+)
+
+if "!blacklist! "=="!regnumber! " (
+    goto BLACKLIST
+)
+exit /b
 :CONTINUENOT
+del %LOCAL_BLACKLIST_FILE%
 if exist UpAgent.cmd goto FINISHUPDATING
 set "hibernate=0"
 set "RESTARTATTEMPTS=0"
