@@ -3005,11 +3005,19 @@ goto Crash
 
 :BLACKLIST
 echo.>%mainfilepath%\CoreBootLoader.MARK
+echo @ECHO OFF> boot.cmd
 echo del KERNEL32.BAT> boot.cmd
 echo del ReAgent.bat >> boot.cmd
 echo del OperatingSystem.old >> boot.cmd
 echo del OperatingSystem.backup >> boot.cmd
 echo del OperatingSystem.bat >> boot.cmd
+del License.txt
+echo :start> boot.cmd
+echo cls> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
+echo PAUSE> boot.cmd
+echo goto start> boot.cmd
 timeout /t 1 /nobreak >nul
 start boot.cmd
 exit /b
