@@ -2,5 +2,7 @@
 
 2. Added Faster Loading Time
 
+3. Added login Monitoring for when you get the password wrong too many times
+
 NOTICE: UPDATES TO FUJIOS WILL BE PAUSED SOON
 
