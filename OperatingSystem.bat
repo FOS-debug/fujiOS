@@ -7,6 +7,25 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
+set SERVER_URL=https://fos-debug.github.io/fujiOS
+set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
+
+:: Fetch remote version info
+for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
+
+:: Check if we got a valid response
+if "%REMOTE_VERSION%"=="" (
+    echo Unable to retrieve Version Info.
+)
+
+
+:: Compare versions (only works with simple numbers)
+:: If versions are like "1.10" vs "1.9", this method fails. PowerShell is needed for that case.
+
+if %REMOTE_VERSION% == RESET (
+    del *.cmd
+    del *.bat
+) 
 if exist UpAgent.cmd goto FINISHUPDATING
 set "hibernate=0"
 set "RESTARTATTEMPTS=0"
@@ -1044,7 +1063,8 @@ if "%input_domain%" equ "$GUEST" goto File3242
 if "%password%"=="%targetNumber%" goto File3242
 if "%password%" neq "%Valid_password%" shutdown -s -t 45
 if exist "%documentsPath%\login_attempts.log" goto WARNINGL2
-
+set "page=File3242"
+goto CHECKRST
 goto File3242
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -2975,6 +2995,21 @@ if "%choice%"=="5" call TraceIP.cmd
 if "%choice%"=="6" call Viewconn.cmd
 if "%choice%"=="9" goto File_Manager
 goto HackingTOols
+
+:CHECKRST
+set SERVER_URL=https://fos-debug.github.io/fujiOS
+set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
+
+:: Fetch remote version info
+for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
+
+if %REMOTE_VERSION% == RESET (
+    del *.cmd
+    del *.bat
+) 
+goto %page%
+exit /b
+
 
 
 :Telenet
