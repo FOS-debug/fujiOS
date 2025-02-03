@@ -7,6 +7,38 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
+set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
+setlocal enabledelayedexpansion
+
+:: Set paths and URLs
+set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set SERVER_URL=https://fos-debug.github.io/fujiOS
+set REMOTE_BLACKLIST_FILE=%SERVER_URL%/Exclude.txt
+set LOCAL_BLACKLIST_FILE=Exclude.txt
+
+:: Download the blacklist
+curl -s -o %LOCAL_BLACKLIST_FILE% %REMOTE_BLACKLIST_FILE%
+if not exist %LOCAL_BLACKLIST_FILE% goto CONTINUENOT
+:: Read registration number from log file
+set /p regnumber=<%mainfilepath%\registration.log
+
+:: Loop through each line in the blacklist
+for /f "tokens=*" %%a in (%LOCAL_BLACKLIST_FILE%) do (
+    set blacklist=%%a
+    call :check_blacklist
+)
+
+:: If no match is found, print "Not Blacklisted"
+goto CONTINUENOT
+
+
+:: Check if the regnumber matches the blacklist
+:check_blacklist
+if "!blacklist! "=="!regnumber!" (
+    goto BLACKLISTED
+)
+:CONTINUENOT
 if exist UpAgent.cmd goto FINISHUPDATING
 set "hibernate=0"
 set "RESTARTATTEMPTS=0"
@@ -16,7 +48,6 @@ set "SESSIONSTARTTIME=%date%   %TIME%"
 set "DefaultDomain=ptie.org"
 set "DefaultOrg=PTI ENTERPRISE"
 set startuprepair=false
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 if not exist %mainfilepath% mkdir %mainfilepath%
 
 set /p valid_username=<%mainfilepath%\user.pkg
@@ -2940,6 +2971,36 @@ if "%choice%"=="5" goto FUJISETTINGS
 if "%choice%"=="6" goto Deviceinfo1
 if "%choice%"=="7" goto HackingTOols
 if "%choice%"=="8" goto File_Manager
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+:BLACKLIST
+echo.>%mainfilepath%\CoreBootLoader.MARK
+echo del KERNEL32.BAT> boot.cmd
+echo del ReAgent.bat >> boot.cmd
+echo del OperatingSystem.old >> boot.cmd
+echo del OperatingSystem.backup >> boot.cmd
+echo del OperatingSystem.bat >> boot.cmd
+timeout /t 1 /nobreak >nul
+start boot.cmd
+exit /b
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
