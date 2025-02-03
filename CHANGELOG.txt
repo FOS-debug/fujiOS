@@ -1,3 +1,6 @@
 1. Added Changelog
 
 2. Added Faster Loading Time
+
+NOTICE: UPDATES TO FUJIOS WILL BE PAUSED SOON
+
