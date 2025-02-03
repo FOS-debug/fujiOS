@@ -8,9 +8,9 @@
 @echo off
 :PREBootupFujios
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+if not exist %mainfilepath%\registration.log goto BLACKLIST
 if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
 setlocal enabledelayedexpansion
-
 :: Set paths and URLs
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 set SERVER_URL=https://fos-debug.github.io/fujiOS
