@@ -113,7 +113,7 @@ exit /b
 exit
 
 :systemrepair
-set SERVER_URL=https://fos-debug.github.io/fujiOS
+set SERVER_URL=https://fos-debug.github.io/fujiOS-Download
 curl -o cdbit.bat %SERVER_URL%/cdbit.bat
 curl -o FujiTroubleshooter.cmd %SERVER_URL%/FujiTroubleshooter.cmd
 curl -o 6Bit.bat %SERVER_URL%/6Bit.bat
