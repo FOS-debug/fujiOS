@@ -7,7 +7,7 @@
 NOTICE: UPDATES TO FUJIOS 4.0 WILL STOP SOON.
 
 NOTICE2: FujiOS Version 5.0 aka the great FujiOS reset will be occuring soon.
-During this time fujios Will be completely REVAMPED with new ui and new everything.
+During this time fujios Will be completely REMOVED OF ALL BLOATWARE
 FujiOS 5.0 InDev right now.
 
 
