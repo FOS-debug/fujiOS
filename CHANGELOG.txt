@@ -1,14 +1,4 @@
-1. Added Changelog
+ATTENTION EVERYBODY
 
-2. Added Faster Loading Time
-
-3. Added login Monitoring for when you get the password wrong too many times
-
-NOTICE: UPDATES TO FUJIOS 4.0 WILL STOP SOON.
-
-NOTICE2: FujiOS Version 5.0 aka the great FujiOS reset will be occuring soon.
-During this time fujios Will be completely REMOVED OF ALL BLOATWARE
-FujiOS 5.0 InDev right now.
-
-
-
+When Version 500 Drops Reinstallation Of The OS is required
+Please See Me For Reinstallation
