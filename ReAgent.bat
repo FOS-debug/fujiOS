@@ -77,6 +77,8 @@ exit
 
 
 :SYSTEMRESTORE
+del systemrstore.log
+
 set OLD_FILE=OperatingSystem.OLD
 set UPDATE_FILE=OperatingSystem.bat
 cls
@@ -94,7 +96,6 @@ echo DO NOT CLOSE THIS SCREEN
 echo.
 echo =========================================
 ping localhost -n 3 >nul
-del systemrstore.log
 
 if not exist %OLD_FILE% goto ERROR
 timeout /t 5 /nobreak >nul
@@ -113,13 +114,12 @@ exit /b
 exit
 
 :systemrepair
+del systemrpair.log
 set SERVER_URL=https://fos-debug.github.io/fujiOS-Download
 curl -o cdbit.bat %SERVER_URL%/cdbit.bat
 curl -o FujiTroubleshooter.cmd %SERVER_URL%/FujiTroubleshooter.cmd
-curl -o 6Bit.bat %SERVER_URL%/6Bit.bat
-curl -o 8bit.bat %SERVER_URL%/8bit.bat
+curl -o Varset.bat %SERVER_URL%/Varset.bat
 curl -o Antivirus.bat %SERVER_URL%/Antivirus.bat
-echo Done!
 pause
 exit /b
 
