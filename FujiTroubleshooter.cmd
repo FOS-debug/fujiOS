@@ -6,6 +6,13 @@
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @echo off
 title FujiOS Troubleshooter
+echo ==========================================================
+echo WARNING: This feature is deprecated.
+echo This app is no longer necessary, but it has not been removed yet.
+echo We are unable to remove it completely at this time in case it is still linked to other components of the OS.
+echo Please be aware that this feature may be fully removed in a future update.
+echo ==========================================================
+pause
 
 :Trouble
 cls
