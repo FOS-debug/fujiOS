@@ -1,9 +1,4 @@
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: FUJIOS VERIFIED SCRIPT                                                         ::
-:: ------------------------------------------------------------------------------ ::
-:: Written by Emery Lightfoot with some debugging help and technique pointers from::
-:: Chatgpt                                                                        ::
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 @echo off
 setlocal enabledelayedexpansion
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
