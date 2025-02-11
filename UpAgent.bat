@@ -6,6 +6,10 @@ set UPDATE_FILE=OperatingSystem.bat
 set UPDATER_FILE=UpAgent.bat
 set BACKUP_FILE=OperatingSystem.Backup
 set OLD_FILE=OperatingSystem.OLD
+set OLD_VERSION=Version.OLD
+set VERSION_FILE=Version.txt
+
+
 
 if exist %BACKUP_FILE% goto UpdatingFailed
 
@@ -106,7 +110,9 @@ echo.
 curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
 curl -s -o UpAgent.cmd %SERVER_URL%/%UPDATER_FILE%
 curl -s -o ReAgent.bat %SERVER_URL%/ReAgent.bat
-curl -s -o KERNEL32.bat %SERVER_URL%/ReAgent.bat
+curl -s -o KERNEL32.bat %SERVER_URL%/KERNEL32.bat
+
+
 
 
 :: Verify download success
@@ -123,13 +129,16 @@ if not exist %UPDATE_FILE% (
     pause
     exit
 )
-echo %REMOTE_VERSION%>Version.txt
+ren %VERSION_FILE% %OLD_VERSION%
+curl -s -o Version.txt %SERVER_URL%/Version.txt
+
 
 cls
 echo.
 echo Software Update Complete.
 if exist %OLD_FILE% del %OLD_FILE%
 if exist %BACKUP_FILE% ren %BACKUP_FILE% %OLD_FILE%
+
 pause
 start cmd /k call OperatingSystem.bat
 exit /b
