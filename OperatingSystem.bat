@@ -10,6 +10,12 @@ setlocal enabledelayedexpansion
 :PREBootupFujios
 set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath% mkdir %mainfilepath%
+if exist CRASHMARK.log (
+     set CRASHED=1
+     del CRASHMARK.log
+) else (
+     set CRASHED=0
+)
 
 if exist "memory.tmp" (
     set "UNSUCSSHTDWN=1" 
@@ -307,6 +313,7 @@ echo.
 echo.
 echo.
 timeout /t 5 /nobreak >nul
+if "%CRASHED%" == "1" goto UNSUCSSHTDWN
 if %RESTARTATTEMPTS% GTR 6 goto ERR16
 if %RESTARTATTEMPTS% GTR 5 goto ERR17
 if %RESTARTATTEMPTS% GTR 4 goto STARTUPREPAIR
