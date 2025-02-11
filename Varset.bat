@@ -11,7 +11,7 @@ if %privatekey2% neq %PRIVATEKEY% (
 )
 
 echo Softcode Check
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 set "ErrorL=0"
 set "MaxErr=2"
 set "MaxxErr=3"
