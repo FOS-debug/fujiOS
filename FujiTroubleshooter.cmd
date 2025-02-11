@@ -11,6 +11,7 @@ pause
 
 :Trouble
 cls
+
 set "documentsPath=%userprofile%\Documents"
 
 if exist "%documentsPath%\BOOTSEC.sys" (
