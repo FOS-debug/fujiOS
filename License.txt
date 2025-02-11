@@ -1,0 +1,44 @@
+END USER LICENSE AGREEMENT (EULA) FOR FujiOS 
+
+PLEASE READ THIS END USER LICENSE AGREEMENT CAREFULLY BEFORE USING THE SOFTWARE. BY USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND BY THE TERMS OF THIS AGREEMENT.
+
+1. LICENSE GRANT
+
+Subject to the terms and conditions of this Agreement, Emery Lightfoot, hereinafter referred to as the "Licensor," grants you a non-exclusive, non-transferable, revocable license to use the FujiOS, 
+hereinafter referred to as the "Software," solely for your personal or internal business purposes.
+
+2. RESTRICTIONS
+
+You may not:
+
+   a. Modify, adapt, translate, reverse engineer, decompile, or disassemble the Software.
+   b. Reproduce, distribute, sublicense, transfer, or lend the Software to any third party.
+   c. Use the Software in any unlawful manner or for any illegal purpose.
+   d. Remove, alter, or obscure any proprietary notices or labels on the Software.
+   e. Remove, Alter, or tamper with any system files made by FujiOS.
+
+3. TERMINATION
+
+This license is effective until terminated by you or the Licensor. Your rights under this license will terminate automatically without notice from the Licensor if you fail to comply with any term(s) of 
+this Agreement. Upon termination of the license, you must cease all use of the Software and destroy all copies in your possession.
+
+4. DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE LICENSOR 
+DOES NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE.
+
+5. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, DAMAGES FOR LOSS OF BUSINESS PROFITS, BUSINESS INTERRUPTION, 
+LOSS OF BUSINESS INFORMATION, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF THE USE OF OR INABILITY TO USE THE SOFTWARE, EVEN IF THE LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+6. GOVERNING LAW
+
+This Agreement shall be governed by and construed in accordance with the laws of Florida. Any disputes arising under or in connection with this Agreement shall be subject to the exclusive jurisdiction of the 
+state and federal courts located within Florida.
+
+BY USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ AND UNDERSTOOD THIS AGREEMENT AND AGREE TO BE BOUND BY ITS TERMS AND CONDITIONS.
+
+1/7/2024
+
+Revised 2/23/2024
