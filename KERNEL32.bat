@@ -312,6 +312,8 @@ if exist OperatingSystemINDEV.bat (
     set "Caller=OperatingSystemINDEV.bat"
     set "OS2=FujiOS Developer Build"
     set "VERSION2=DEVELOPEMENT"
+) else (
+    set "Caller=OperatingSystem.bat"
 )
 call "%Caller%"
 cls
