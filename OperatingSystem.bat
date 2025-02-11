@@ -10,6 +10,17 @@ setlocal enabledelayedexpansion
 :PREBootupFujios
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 
+
+if exist "memory.tmp" (
+    set "UNSUCSSHTDWN=1" 
+) else (
+    set "UNSUCSSHTDWN=0" 
+)
+set "attempts=0"
+
+
+
+:FULLBootupFujios
 if not exist PRIVATEKEY.ini (
     set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
     goto Crash
@@ -23,18 +34,6 @@ if %privatekey2% neq %PRIVATEKEY% (
     set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
     goto Crash
 )
-
-
-if exist "memory.tmp" (
-    set "UNSUCSSHTDWN=1" 
-) else (
-    set "UNSUCSSHTDWN=0" 
-)
-set "attempts=0"
-
-
-
-:FULLBootupFujios
 set "lastpage=Full Bootup Fujios"
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 
@@ -1327,7 +1326,6 @@ pause
 goto LogCrash
 
 :LogCrash
-pause
 attrib -r %crshdmplocn%
 echo ============================ > %crshdmpfile%
 echo == %OS2% Crash Report == >> %crshdmpfile%
