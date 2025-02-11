@@ -1353,13 +1353,14 @@ if "%bsodcode%"=="FUJI_CORRUPT_ERR" timeout /t 99999 /NOBREAK >nul
 if "%bsodcode%"=="FUJI_CORRUPT_ERR" goto ERR16
 echo.
 pause
+set "bsodcode="
 goto FULLBootupFujios
 
 
 
 :bcodeud
-set "lastpage=Unknown Crash"
-echo %lastpage%>> memory.tmp
+set "lastpage1=Unknown Crash"
+echo %lastpage1%>> memory.tmp
 set bsodcode=UNKNOWN_CRASH_EXCEPTION
 goto crash
 
