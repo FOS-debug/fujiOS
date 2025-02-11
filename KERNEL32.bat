@@ -33,6 +33,9 @@ goto FJJ
 :FJJ
 
 :Check1
+set /p foscd=<icd.ini
+
+if "%foscd%" neq "1121" goto BCW
 if exist "OperatingSystem.bat" (
     goto Check2
 ) else (
@@ -401,3 +404,11 @@ goto bob1
 set "bsodcode=KERR_INTERPAGE JUMP"
 set "crash=1"
 exit /b
+
+:BCW
+cls
+echo Possible BIOS Corruption 
+echo Press any key to repair
+pause >nul
+echo 1121>icd.ini
+goto restart
