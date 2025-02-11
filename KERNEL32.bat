@@ -1,17 +1,20 @@
 
 @echo off
+
+cls
 set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 if not exist %mainfilepath%\registration.log goto BLACKLIST
 if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
+if "%CRASHLOADED%" neq "1" exit /b
+set "crash=1"
 
 set "OS2=FujiOS"
 set /p VERSION2=<version.txt
 if exist "License.txt" goto restart
 Set "debug1453="
-echo LICENSE REVOKED
-pause
+set "bsodcode=KERR_LICENSE_REVOKED"
+set "crash=1"
 exit /b
-
 
 :restart
 type License.txt
@@ -33,11 +36,9 @@ goto FJJ
 if exist "OperatingSystem.bat" (
     goto Check2
 ) else (
-    echo 'OperatingSystem.bat' not found
-    echo.
-    echo Press Enter To Proceed Anyways
-    pause
-    goto check2
+set "bsodcode=KERR_OS_NOT FOUND"
+set "crash=1"
+exit /b
 )
 
 :check2
@@ -67,9 +68,23 @@ set choice=%errorlevel%
 if %choice% equ 1 goto start1
 if %choice% equ 2 goto HIBER1
 if %choice% equ 3 goto bob12
-if %choice% equ 4 goto exit /b 0
+if %choice% equ 4 exit
+if %choice% equ 5 goto UIC
+
 goto bob
 
+set "bsodcode=KERR_INTERPAGE JUMP"
+set "crash=1"
+exit /b
+
+:UIC
+set "bsodcode=KERR_USER_INIT_CRASH"
+set "crash=1"
+exit /b
+
+set "bsodcode=KERR_INTERPAGE JUMP"
+set "crash=1"
+exit /b
 
 :bob12
 cls
@@ -103,6 +118,10 @@ if "%op%"=="root" echo ROOT Kernel
 if "%op%"=="SCAN" call Antivirus.bat
 %op%
 goto bob12
+
+set "bsodcode=KERR_INTERPAGE JUMP"
+set "crash=1"
+exit /b
 
 :DEBUG
 Set "debug1453=1"
@@ -302,15 +321,9 @@ cls
 goto bob
 
 :KernelERR
-cls
-echo.
-echo Unable To Find Operating System
-echo.
-echo.
-echo.
-echo.
-pause
-goto bob
+set "bsodcode=KERR_INTERPAGE JUMP"
+set "crash=1"
+exit /b
 
 
 :BLACKLIST
@@ -384,3 +397,7 @@ set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
 echo %PRIVATEKEY%>PRIVATEKEY.ini
 call "%Caller%"
 goto bob1
+
+set "bsodcode=KERR_INTERPAGE JUMP"
+set "crash=1"
+exit /b
