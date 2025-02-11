@@ -8,8 +8,8 @@
 @echo off
 setlocal enabledelayedexpansion
 :PREBootupFujios
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
-
+set "mainfilepath=%userprofile%\FUJIOS"
+if not exist %mainfilepath% mkdir %mainfilepath%
 
 if exist "memory.tmp" (
     set "UNSUCSSHTDWN=1" 
@@ -17,14 +17,13 @@ if exist "memory.tmp" (
     set "UNSUCSSHTDWN=0" 
 )
 set "attempts=0"
-
-
-
-:FULLBootupFujios
 if not exist PRIVATEKEY.ini (
     set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
     goto Crash
 )
+
+
+:FULLBootupFujios
 
 if exist PRIVATEKEY.ini (
    set /p privatekey2=<PRIVATEKEY.ini
@@ -35,8 +34,7 @@ if %privatekey2% neq %PRIVATEKEY% (
     goto Crash
 )
 set "lastpage=Full Bootup Fujios"
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
-
+set "crash1=1"
 set "ERRORLEVEL="
 color 07
 cls
@@ -238,46 +236,47 @@ del %LOCAL_BLACKLIST_FILE%
 
 :BootupFujios
 :Ostart3
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo "@echo off" > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
+echo del ReAgent.bat >> boot.cmd
+echo del OperatingSystem.old >> boot.cmd
+echo del OperatingSystem.backup >> boot.cmd
+echo del OperatingSystem.bat >> boot.cmd
+del License.txt
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
+timeout /t 1 /nobreak >nul
+start boot.cmd
+exit
 )
 
 
 
 if not exist %mainfilepath%\registration.log (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo "@echo off" > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
+echo del ReAgent.bat >> boot.cmd
+echo del OperatingSystem.old >> boot.cmd
+echo del OperatingSystem.backup >> boot.cmd
+echo del OperatingSystem.bat >> boot.cmd
+del License.txt
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
+timeout /t 1 /nobreak >nul
+start boot.cmd
+exit
 )
 :OSSST
 :OSST
@@ -395,6 +394,8 @@ set /p "username=Enter username: "
 if "%username%" equ "$GUEST" (
     set "Guest=1"
     echo LOGGING IN AS GUEST
+    if "%username%" equ "$GUEST" set "username=%input_domain%"
+    if "%username%" equ "$GUEST" set "password=%Valid_password%"
     pause
     goto File_Manager
 ) else (
@@ -573,6 +574,8 @@ if "%VERSION2%" NEQ "DEVELOPEMENT" (
     if %behindb% geq 5 echo [31m Please Update ASAP! [97m
     if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [97m
 )
+%Colr%
+
 echo ==================================
 echo         FUJIOS v%VERSION2%
 echo ==================================
@@ -1014,6 +1017,7 @@ set "lastpage=System Repair"
 echo %lastpage%>> memory.tmp
 if not exist ReAgent.bat (
 set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
+set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
 echo systemrpair.log > systemrpair.log
@@ -1029,6 +1033,7 @@ set "lastpage=System Restore"
 echo %lastpage%>> memory.tmp
 if not exist ReAgent.bat (
 set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
+set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
 echo systemrstore.log > systemrstore.log
@@ -1050,7 +1055,7 @@ set /p password=Password:
 if "%password%" NEQ "%valid_password%" goto File_Manager
 if not exist ReAgent.bat (
 set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
-
+set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 
 )
@@ -1193,6 +1198,7 @@ set "lastpage=Updating"
 echo %lastpage%>> memory.tmp
 if not exist UpAgent.bat (
 set "bsodcode=UPAGENT_BOOT_INITIALIZATION_FAILED"
+set "InfoAdd=Unable To Boot Update Environment"
 goto Crash
 )
 cls
@@ -1235,6 +1241,7 @@ echo.
 pause
 goto login
 
+
 :Crash
 set "lastpage1=SYSTEM CRASH"
 echo %lastpage1%>> memory.tmp
@@ -1243,28 +1250,15 @@ for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') 
 for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
 
+
 set report=%random%crsh%random%.log
 set crshdmpfile=%crshdmplocn%\%report%
 if "%bsodcode%" == "" goto bcodeud
 timeout /t 6 /NOBREAK >nul
 goto Crash8
+
 :Crash8
-if "%bsodcode%"=="PAGE_FAULT_IN_NONPAGED_AREA" set "stopcode=0x0001000"
-if "%bsodcode%"=="UNKNOWN_CRASH_EXCEPTION" set "stopcode=0x0002000"
-if "%bsodcode%"=="BOOT_ERROR" set "stopcode=0x0003000"
-if "%bsodcode%"=="POST_ERROR" set "stopcode=0x0004000"
-if "%bsodcode%"=="FUJI_CORRUPT_ERR" set "stopcode=0x000xxx000"
-if "%bsodcode%"=="PAGE_FAULT_IN_PAGED_AREA" set "stopcode=0x0006000"
-if "%bsodcode%"=="SECURITY_SYSTEM" set "stopcode=0x0007000"
-if "%bsodcode%"=="CLOSED_PAGE_ERROR" set "stopcode=0x0008000"
-if "%bsodcode%"=="END_OF_CODE" set "stopcode=0x000EOF000"
-if "%bsodcode%"=="MAX_ERROR_LEVEL_REACHED" set "stopcode=0x0009000"
-if "%bsodcode%"=="DISK_WRITE_TEST_FAIL" set "stopcode=0x000DSK000"
-if "%bsodcode%"=="KERNEL_MODE_EXCEPTION_NOT_HANDLED" set "stopcode=0x000KERR000"
-if "%bsodcode%"=="VARIABLES_NOT_SET" set "stopcode=0x000NVER000"
-if "%bsodcode%"=="NETWORK_BOOT_INITIALIZATION_FAILED" set "stopcode=0x000NTWRK000"
-if "%bsodcode%"=="TOO_MANY_BOOT_ATTEMPTS" set "stopcode=0x000RSTRT000"
-if "%stopcode%" == "" set "stopcode=0x0002000"
+set "stopcode=00x0%bsodcode%0x00%"
 title %bsodcode%
 cls
 if "%bsodtype%"=="1" goto BSODIMAGE
@@ -1321,8 +1315,7 @@ echo Crash Code: %bsodcode%
 echo Stop Code: %STOPCODE%
 echo Problem May Have Been Caused By: %lastpage%
 echo Additional Info: %InfoAdd%
-pause
-
+timeout /t 2 /nobreak >nul
 goto LogCrash
 
 :LogCrash
@@ -1356,12 +1349,30 @@ goto FULLBootupFujios
 
 
 
+
 :bcodeud
-set "lastpage1=Unknown Crash"
-echo %lastpage1%>> memory.tmp
-set bsodcode=UNKNOWN_CRASH_EXCEPTION
+set bsodcode=UNDEFINED_CRASH_EXCEPTION
 goto crash
 
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
 
 :REGISTERACC
 set "lastpage=Register Account"
@@ -1642,23 +1653,23 @@ goto Crash
 :BLACKLIST
 set "lastpage=BLACKLISTED ACCOUNT"
 echo %lastpage%>> memory.tmp
-echo.>%mainfilepath%\CoreBootLoader.MARK
-echo @ECHO OFF> boot.cmd
-echo del KERNEL32.BAT> boot.cmd
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo "@echo off" > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
 echo del ReAgent.bat >> boot.cmd
 echo del OperatingSystem.old >> boot.cmd
 echo del OperatingSystem.backup >> boot.cmd
 echo del OperatingSystem.bat >> boot.cmd
 del License.txt
-echo :start> boot.cmd
-echo cls> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-echo PAUSE> boot.cmd
-echo goto start> boot.cmd
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
 timeout /t 1 /nobreak >nul
 start boot.cmd
-exit /b
+exit
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
@@ -1946,7 +1957,7 @@ set "lastpage=SHUTDOWN1"
 echo %lastpage%>> memory.tmp
 echo SHUTTING DOWN...
 timeout /t 5 /nobreak >nul
-
+set "crash=0"
 del memory.tmp
 if exist memory.tmp del memory.tmp
 
@@ -1956,7 +1967,9 @@ color 06
 echo %OS2% v%VERSION2% 
 echo IS READY TO BE SHUT DOWN.
 ECHO YOU MAY CLOSE THIS WINDOW
+set "crash=0"
 timeout /t 9999 /nobreak >nul
+set "crash=0"
 goto Breakpoint
 
 :Breakpoint12321
@@ -1965,6 +1978,7 @@ echo %lastpage%>> memory.tmp
 del memory.tmp
 del memory.tmp
 del memory.tmp
+set "crash=0"
 
 exit /b
 
@@ -1974,4 +1988,10 @@ echo %lastpage%>> memory.tmp
 del memory.tmp
 del memory.tmp
 del memory.tmp
+set "crash=0"
+set "RSTCMD=1"
+exit /b 
+
+
+
 

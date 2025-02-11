@@ -8,7 +8,6 @@ if "%crash%" == "1" (
 ) else (
     set "crash=0"
 )
-
 call KERNEL32.bat
 goto Coreloaading
 

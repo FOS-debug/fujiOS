@@ -2,7 +2,7 @@
 @echo off
 
 cls
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath%\registration.log goto BLACKLIST
 if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
 if "%CRASHLOADED%" neq "1" exit /b
@@ -34,8 +34,21 @@ goto FJJ
 
 :Check1
 set /p foscd=<icd.ini
+< settings.ini (
+  set /p Pin1=
+  set /p Pin2=
+  set /p Pin3=
+  set /p Pin4=
+  set /p Pin5=
+  set /p Pin6=
+  set /p Pin7=
+  set /p Pin8=
+  set /p PinVerif=
+)
+
 
 if "%foscd%" neq "1121" goto BCW
+if "%PinVerif%" neq "01000110.01001111.01010011" goto BCW
 if exist "OperatingSystem.bat" (
     goto Check2
 ) else (
@@ -49,7 +62,7 @@ set "documentsPath=%mainfilepath%"
 goto bob
 
 :bob
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath%\registration.log goto BLACKLIST
 if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
 title %os2%
@@ -109,9 +122,6 @@ if "%op%"=="Start\q" goto Start
 if "%op%"=="start\S" goto start1
 if "%op%"=="start\Q" goto Start
 if "%op%"=="start\s" goto start1
-if "%op%"=="reset" call fds.bat
-if "%op%"=="Reset" call fds.bat
-if "%op%"=="RESET" call fds.bat
 if "%op%"=="start\q" goto Start
 if "%op%"=="cls" goto bob
 if "%op%"=="Cls" goto bob
@@ -252,7 +262,7 @@ timeout /t 10 /NOBREAK >nul
 goto Start
 
 :Start
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
     echo @ECHO OFF> boot.cmd
@@ -315,7 +325,7 @@ if exist OperatingSystemINDEV.bat (
 ) else (
     set "Caller=OperatingSystem.bat"
 )
-call "%Caller%"
+call %Caller%
 cls
 echo %Caller% Was Exited
 pause
@@ -332,66 +342,68 @@ exit /b
 
 
 :BLACKLIST
-echo.>%mainfilepath%\CoreBootLoader.MARK
-echo @ECHO OFF> boot.cmd
-echo del KERNEL32.BAT> boot.cmd
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo @echo off > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
 echo del ReAgent.bat >> boot.cmd
 echo del OperatingSystem.old >> boot.cmd
 echo del OperatingSystem.backup >> boot.cmd
 echo del OperatingSystem.bat >> boot.cmd
 del License.txt
-echo :start> boot.cmd
-echo cls> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-echo PAUSE> boot.cmd
-echo goto start> boot.cmd
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
 timeout /t 1 /nobreak >nul
 start boot.cmd
 exit
 
 
 :HIBER1
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo "@echo off" > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
+echo del ReAgent.bat >> boot.cmd
+echo del OperatingSystem.old >> boot.cmd
+echo del OperatingSystem.backup >> boot.cmd
+echo del OperatingSystem.bat >> boot.cmd
+del License.txt
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
+timeout /t 1 /nobreak >nul
+start boot.cmd
+exit
 )
 
 
 
 if not exist %mainfilepath%\registration.log (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+echo >%mainfilepath%\CoreBootLoader.MARK
+echo "@echo off" > boot.cmd
+echo del KERNEL32.BAT >> boot.cmd
+echo del ReAgent.bat >> boot.cmd
+echo del OperatingSystem.old >> boot.cmd
+echo del OperatingSystem.backup >> boot.cmd
+echo del OperatingSystem.bat >> boot.cmd
+del License.txt
+echo :start >> boot.cmd
+echo cls >> boot.cmd
+echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
+echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
+echo PAUSE >> boot.cmd
+echo goto start >> boot.cmd
+timeout /t 1 /nobreak >nul
+start boot.cmd
+exit
 )
 
 if exist OperatingSystem.Backup (
@@ -400,7 +412,7 @@ if exist OperatingSystem.Backup (
 )
 set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
 echo %PRIVATEKEY%>PRIVATEKEY.ini
-call "%Caller%"
+call OSCrashProcessor.bat
 goto bob1
 
 set "bsodcode=KERR_INTERPAGE JUMP"
@@ -413,4 +425,23 @@ echo Possible BIOS Corruption
 echo Press any key to repair
 pause >nul
 echo 1121>icd.ini
+goto SETCODES
+
+
+
+
+:SETCODES
+(
+  echo 0
+  echo 0
+  echo 0
+  echo 0
+  echo 1
+  echo 1
+  echo 1
+  echo 1
+  echo 01000110.01001111.01010011
+) > settings.ini
 goto restart
+
+

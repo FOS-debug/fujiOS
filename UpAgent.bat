@@ -8,31 +8,114 @@ set BACKUP_FILE=OperatingSystem.Backup
 set OLD_FILE=OperatingSystem.OLD
 set OLD_VERSION=Version.OLD
 set VERSION_FILE=Version.txt
+set /p CURRENT_VERSION=<Version.txt
+
 
 
 
 if exist %BACKUP_FILE% goto UpdatingFailed
+echo. >> Update.log
+echo ========================================================== >> Update.log
+echo    UPDATE SESSION STARTED  DATE: %DATE% TIME: %TIME% >> Update.log
+echo ========================================================== >> Update.log
+echo. >> Update.log
+
+
+set "TPE=1"
+set "MSG=Testing connection to Google.com"
+call :UpdateLog
+
+ping -n 4 google.com >nul
+
+if %errorlevel%==0 (
+    set "TPE=1"
+    set "MSG=Connection up"
+    call :UpdateLog
+) else (
+    set "TPE=2"
+    set "MSG=Connection down. Retrying Later"
+    call :UpdateLog
+    goto TryAgainLater
+)
 
 
 :StartUpdates
+timeout /t 5 /nobreak >nul
+:FETCHVERSIONINFO
+set /a ATTEMPT+=1
+
+set "TPE=1"
+set "MSG=Updating asset information on FOS - Attempt %ATTEMPT%"
+call :UpdateLog
+
+
+if "%ATTEMPT%" geq "6" (
+    set "TPE=2"
+    set "MSG=Failed to contact Update API, The remote name could not be resolved: '%SERVER_URL%'"
+    call :UpdateLog
+    goto ERROR
+)
+
 :: Fetch remote version info
 for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
 
 :: Check if we got a valid response
 if "%REMOTE_VERSION%"=="" (
-    echo Unable to retrieve Version Info.
-    pause
-    goto ERROR
+    goto FETCHVERSIONINFO
 )
+
+set "TPE=1"
+set "MSG=Update API returned message - success"
+call :UpdateLog
+
+timeout /t 3 /nobreak >nul
+
+
+set "TPE=1"
+set "MSG=Checking for updates"
+call :UpdateLog
+
+timeout /t 5 /nobreak >nul
+
+set "TPE=1"
+set "MSG=Operating System Running version %CURRENT_VERSION%"
+call :UpdateLog
+
+timeout /t 3 /nobreak >nul
+
+set "TPE=1"
+set "MSG=Operating System Latest  version %REMOTE_VERSION%"
+call :UpdateLog
+
+timeout /t 3 /nobreak >nul
+
+if "%CURRENT_VERSION%" geq "%REMOTE_VERSION%" (
+    set "TPE=1"
+    set "MSG=No updates found"
+    call :UpdateLog
+    set "TPE=1"
+    set "MSG=Nothing to do, Service running latest version"
+    call :UpdateLog
+    goto TryAgainLater
+) else (
+    set "TPE=1"
+    set "MSG=Updates found. Starting Updates"
+    call :UpdateLog
+)
+
+
+timeout /t 3 /nobreak >nul
+
 
 echo.
 echo New update found! Downloading...
 echo [33mDO NOT CLOSE THIS WINDOW[0m
 timeout /t 15 /nobreak >nul
-:: Backup existing file if it exists
+
 if exist %UPDATE_FILE% (
     rename %UPDATE_FILE% %BACKUP_FILE%
 )
+
 cls
 echo.
 echo.
@@ -107,10 +190,14 @@ timeout /t 3 /nobreak >nul
 echo.
 echo.
 :: Download new version
-curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
+set "TPE=1"
+set "MSG=Downloading New Version Files"
+call :UpdateLog
+
 curl -s -o UpAgent.cmd %SERVER_URL%/%UPDATER_FILE%
 curl -s -o ReAgent.bat %SERVER_URL%/ReAgent.bat
 curl -s -o KERNEL32.bat %SERVER_URL%/KERNEL32.bat
+curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
 
 
 
@@ -118,9 +205,18 @@ curl -s -o KERNEL32.bat %SERVER_URL%/KERNEL32.bat
 :: Verify download success
 if not exist %UPDATE_FILE% (
     echo Download failed! Restoring backup...
+    set "TPE=2"
+    set "MSG=Download Failed, Attempting To Restore Backup"
+    call :UpdateLog
     if exist %BACKUP_FILE% (
         rename %BACKUP_FILE% %UPDATE_FILE%
+        set "TPE=1"
+        set "MSG=Backup Restored"
+        call :UpdateLog
     ) else (
+        set "TPE=2"
+        set "MSG=Unable To Restore Backup"
+        call :UpdateLog
         echo Unable To Find Backup File
         pause
         goto ERROR5
@@ -129,6 +225,10 @@ if not exist %UPDATE_FILE% (
     pause
     exit
 )
+set "TPE=1"
+set "MSG=Update Successful"
+call :UpdateLog
+
 ren %VERSION_FILE% %OLD_VERSION%
 curl -s -o Version.txt %SERVER_URL%/Version.txt
 
@@ -136,27 +236,46 @@ curl -s -o Version.txt %SERVER_URL%/Version.txt
 cls
 echo.
 echo Software Update Complete.
+set "TPE=1"
+set "MSG=Update Complete"
+call :UpdateLog
+
 if exist %OLD_FILE% del %OLD_FILE%
 if exist %BACKUP_FILE% ren %BACKUP_FILE% %OLD_FILE%
 
 pause
 start cmd /k call OperatingSystem.bat
 exit /b
+
 :ERROR5
 echo Unable to find Operating System
 echo Press Any Key To Start SysRestore
 pause >nul
+set "TPE=1"
+set "MSG=Starting SysRestore"
+call :UpdateLog
 echo >systemrstore.log
 call ReAgent.bat
 if not exist %UPDATE_FILE% goto ERROR2
+set "TPE=1"
+set "MSG=SysRestore Completed Successfully"
+call :UpdateLog
+
 echo SYS RESTORE COMPLETED SUCCESSFULLY
 echo.
 echo PRESS ANY KEY TO RESTART UPDATE
 pause >nul
+set "TPE=1"
+set "MSG=Restarting Update"
+call :UpdateLog
 start UpAgent.bat
 exit
 
 :ERROR2
+set "TPE=2"
+set "MSG=Critical Update Failure, OS File Missing"
+call :UpdateLog
+
 cls
 echo ==========================================================
 echo ERROR: Operating System Update Failed  
@@ -182,6 +301,12 @@ timeout /t 9999 /nobreak >nul
 goto ERROR2
 
 :UpdatingFailed
+set "TPE=2"
+set "MSG=OS Update Not Completed Properly"
+call :UpdateLog
+set "TPE=1"
+set "MSG=Attempting Update Restart"
+call :UpdateLog
 cls
 echo.
 echo ==========================================================
@@ -207,3 +332,19 @@ echo ERROR Retreiving Version Info
 echo Please Download Update Manually
 pause
 exit
+
+:UpdateLog
+if %TPE%==1 set TPE=INFO
+if %TPE%==2 set TPE=ERROR
+echo %DATE% %TIME% PID:4268  %TPE% %MSG% >> Update.log
+echo %DATE% %TIME% PID:4268  %TPE% %MSG%
+set "TPE="
+set "MSG="
+exit /b 
+
+
+:TryAgainLater
+cls
+echo Your internet connection may be down, or there are no updates available at this time.
+pause
+exit /b
