@@ -12,7 +12,7 @@ pause
 setlocal EnableDelayedExpansion
 
 :: Define the path to the Documents directory
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath% mkdir %mainfilepath%
 %mainfilepath%
 set "DOCS_PATH=%mainfilepath%"
