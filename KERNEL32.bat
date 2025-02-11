@@ -31,7 +31,10 @@ CHOICE /C YN /M "Are You Sure"
 if "%errorlevel%" neq "1" goto restart
 goto FJJ
 :FJJ
-
+if exist OperatingSystem.Backup (
+    start UpAgent.bat
+    exit
+)
 :Check1
 set /p foscd=<icd.ini
 < settings.ini (
@@ -406,10 +409,7 @@ start boot.cmd
 exit
 )
 
-if exist OperatingSystem.Backup (
-    start UpAgent.bat
-    exit
-)
+
 set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
 echo %PRIVATEKEY%>PRIVATEKEY.ini
 call OSCrashProcessor.bat

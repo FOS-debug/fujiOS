@@ -13,12 +13,13 @@ set /p CURRENT_VERSION=<Version.txt
 
 
 
-if exist %BACKUP_FILE% goto UpdatingFailed
 echo. >> Update.log
 echo ========================================================== >> Update.log
 echo    UPDATE SESSION STARTED  DATE: %DATE% TIME: %TIME% >> Update.log
 echo ========================================================== >> Update.log
 echo. >> Update.log
+
+if exist %BACKUP_FILE% goto UpdatingFailed
 
 
 set "TPE=1"
@@ -41,26 +42,27 @@ if %errorlevel%==0 (
 
 :StartUpdates
 timeout /t 5 /nobreak >nul
+set "ATTEMPT=1"
 :FETCHVERSIONINFO
-set /a ATTEMPT+=1
+
+
 
 set "TPE=1"
 set "MSG=Updating asset information on FOS - Attempt %ATTEMPT%"
 call :UpdateLog
 
 
-if "%ATTEMPT%" geq "6" (
-    set "TPE=2"
-    set "MSG=Failed to contact Update API, The remote name could not be resolved: '%SERVER_URL%'"
-    call :UpdateLog
-    goto ERROR
-)
 
 :: Fetch remote version info
 for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
 
 :: Check if we got a valid response
 if "%REMOTE_VERSION%"=="" (
+    timeout /t 2 /nobreak >nul
+    set /a ATTEMPT+=1
+    set "TPE=2"
+    set "MSG=Failed to contact Update API, The remote name could not be resolved: '%SERVER_URL%'"
+    call :UpdateLog
     goto FETCHVERSIONINFO
 )
 
@@ -96,6 +98,7 @@ if "%CURRENT_VERSION%" geq "%REMOTE_VERSION%" (
     set "TPE=1"
     set "MSG=Nothing to do, Service running latest version"
     call :UpdateLog
+    timeout /t 3 /nobreak >nul
     goto TryAgainLater
 ) else (
     set "TPE=1"
@@ -272,6 +275,10 @@ start UpAgent.bat
 exit
 
 :ERROR2
+set "TPE=2"
+set "MSG=SysRestore FAILED"
+call :UpdateLog
+
 set "TPE=2"
 set "MSG=Critical Update Failure, OS File Missing"
 call :UpdateLog
