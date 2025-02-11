@@ -77,6 +77,8 @@ exit
 
 
 :SYSTEMRESTORE
+set OLD_VERSION=Version.OLD
+set VERSION_FILE=Version.txt
 
 set OLD_FILE=OperatingSystem.OLD
 set UPDATE_FILE=OperatingSystem.bat
@@ -101,6 +103,8 @@ if not exist %OLD_FILE% goto ERROR
 timeout /t 5 /nobreak >nul
 del %UPDATE_FILE%
 ren %OLD_FILE% %UPDATE_FILE%
+del %VERSION_FILE%
+ren %OLD_VERSION% %VERSION_FILE%
 echo System Successfully Restored
 timeout /t 5 /nobreak >nul
 exit /b
