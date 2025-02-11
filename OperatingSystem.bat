@@ -1687,8 +1687,9 @@ cls
 echo ==============================================
 echo          Unexpected System Shutdown
 echo ==============================================
-echo Did you experience a non-BSOD related crash? 
-echo (Example: OS stopped and closed unexpectedly)
+echo Did your system experience a Blue Screen of Death (BSOD) 
+echo or a non-BSOD crash?
+echo (Example: The OS unexpectedly shut down, froze, or displayed a blue screen.)
 echo.
 
 :: Prompt for user choice
@@ -1698,6 +1699,7 @@ set "crash=%errorlevel%"
 if "%crash%"=="1" (
     echo.
     echo Redirecting to feedback page...
+    start FujiTroubleshooter.cmd
     timeout /t 2 >nul
     start https://docs.google.com/forms/d/e/1FAIpQLSdGiNb8u3iiSU6cVAjA9vygOxLAVbwEmaooNMHyM_DZMSxSLQ/viewform
 ) else (

@@ -1,69 +1,35 @@
-
 @echo off
-title FujiOS Troubleshooter
-echo ==========================================================
-echo WARNING: This feature is deprecated.
-echo This app is no longer necessary, but it has not been removed yet.
-echo We are unable to remove it completely at this time in case it is still linked to other components of the OS.
-echo Please be aware that this feature may be fully removed in a future update.
-echo ==========================================================
+setlocal
+
+REM --- Set up a temporary folder for packaging the files ---
+set "TMPDIR=%TEMP%\FeedbackReportTemp"
+
+REM Delete the temporary folder if it already exists
+if exist "%TMPDIR%" rd /s /q "%TMPDIR%"
+
+REM Create the temporary folder
+mkdir "%TMPDIR%"
+
+REM --- Copy the CrashLogs folder (with all its subfolders/files) ---
+xcopy "%userprofile%\FUJIOS\CrashLogs" "%TMPDIR%\CrashLogs" /E /I /H /Y
+
+REM --- Copy the registration.log file ---
+copy "%userprofile%\FUJIOS\registration.log" "%TMPDIR%\" /Y
+
+REM --- Remove any previous FEEDBACKRPT.zip in the current directory ---
+if exist "FEEDBACKRPT.zip" del /f /q "FEEDBACKRPT.zip"
+
+REM --- Zip the temporary folder’s contents into FEEDBACKRPT.zip ---
+powershell -noprofile -command "Compress-Archive -Path '%TMPDIR%\*' -DestinationPath '%CD%\FEEDBACKRPT.zip'"
+
+REM --- Clean up: Remove the temporary folder ---
+rd /s /q "%TMPDIR%"
+
+endlocal
+cls
+echo FEEDBACKRPT.zip Has Been Created In Current Directory. Please Upload This To The Feedback Form.
+echo You Can Delete FEEDBACKRPT.zip After It Is Uploaded To The Feedback Form.
+
+timeout /t 9999 /nobreak >nul
 pause
-
-:Trouble
-cls
-
-set "documentsPath=%userprofile%\Documents"
-
-if exist "%documentsPath%\BOOTSEC.sys" (
-    echo No Problems Found With BootMGR
-
-) else (
-    echo. > "%documentsPath%\BOOTSEC.sys"
-    echo Error BootMGR is Missing
-)
-Pause
-goto Trouble1
-
-:Trouble1
-cls
-set "documentsPath=%userprofile%\Documents"
-
-if exist "%documentsPath%\BOOTSEC2" (
-    echo Error BootSec Bug 
-    del "%documentsPath%\BOOTSEC2"
-) else (
-    echo No BootSec Bugs
-)
-Pause
-goto Trouble2
-
-:Trouble2
-cls
-set "documentsPath=%userprofile%\Documents"
-
-if exist "%documentsPath%\BURGER.dll" (
-    echo Corrupted Fuji Installation
-    timeout /nobreak /t 4 >nul
-    goto BROKE
-
-) else (
-    echo DONE!
-)
-Pause
-cls
-echo No further problems have been found
-pause
-exit /b
-
-
-
-
-
-:BROKE
-cls
-echo We were unable to fix your
-echo FujiOS installation
-echo.
-echo.
-echo.
-pause
+timeout /t 15 /nobreak >nul
