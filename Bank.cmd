@@ -1,7 +1,7 @@
 
 @echo off
 setlocal enabledelayedexpansion
-set "mainfilepath=%userprofile%\appdata\roaming\FUJIOS"
+set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath% mkdir %mainfilepath%
 
 set "userFolder=%mainfilepath%"
