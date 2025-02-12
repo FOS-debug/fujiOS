@@ -1,9 +1,3 @@
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: FUJIOS VERIFIED SCRIPT                                                         ::
-:: ------------------------------------------------------------------------------ ::
-:: Written by Emery Lightfoot with some debugging help and technique pointers from::
-:: Chatgpt                                                                        ::
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 setlocal enabledelayedexpansion
@@ -874,19 +868,27 @@ if "%DMP5%" == "1" (
     )
 )
 
+if "%CMD%" == "EXIT" goto BootupFujios
+if "%freecmd%" == "1" %CMD%
 
-if "%CMD%" == "CMD" (
+if "%CMD%" == "FREECMD" (
+    echo.
+    echo.
     echo Toggled FreeCmd Use
     if "%freecmd%" == "1" (
         set "freecmd=0"
     ) else (
         set "freecmd=1"
     )
-    echo FreeCmd State: %freecmd%
+    set "SHOW=1"
 )
-
-if "%CMD%" == "EXIT" goto BootupFujios
-if "%freecmd%" == "1" %CMD%
+if "%SHOW%" == "1" (
+    echo FreeCmd State: %freecmd%
+    echo.
+    set "SHOW=0"
+) else (
+    set "SHOW=0"
+)
 goto MTERMINAL
 
 
