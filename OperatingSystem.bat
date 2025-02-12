@@ -311,7 +311,7 @@ echo     Copyright 2022-2026
 echo.
 echo.
 echo.
-CHOICE /c NM /n /t 5 /d M
+CHOICE /c NM /n /t 5 /d N
 set OPTION=%ERRORLEVEL%
 If %OPTION%==2 goto MAINTENANCEMODE
 if "%CRASHED%" == "1" goto UNSUCSSHTDWN
