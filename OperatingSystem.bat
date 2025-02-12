@@ -28,7 +28,6 @@ if not exist PRIVATEKEY.ini (
     goto Crash
 )
 
-
 :FULLBootupFujios
 
 if exist PRIVATEKEY.ini (
@@ -312,7 +311,9 @@ echo     Copyright 2022-2026
 echo.
 echo.
 echo.
-timeout /t 5 /nobreak >nul
+CHOICE /c NM /n /t 5 /d M
+set OPTION=%ERRORLEVEL%
+If %OPTION%==2 goto MAINTENANCEMODE
 if "%CRASHED%" == "1" goto UNSUCSSHTDWN
 if %RESTARTATTEMPTS% GTR 6 goto ERR16
 if %RESTARTATTEMPTS% GTR 5 goto ERR17
@@ -363,6 +364,7 @@ if %ERRORLEVEL%==1 goto login
 if %ERRORLEVEL%==2 goto REGISTERACC
 goto loginorregister
 
+x
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -582,7 +584,14 @@ if "%VERSION2%" NEQ "DEVELOPEMENT" (
     if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [97m
 )
 %Colr%
-
+if exist MemoryDump.tmp (
+    echo.
+    echo WARNING Your Info May Have Been Compromised.
+    echo.
+    echo Your data [Usernames Passwords etc.] may have been exposed
+    echo Please Change Your Password And Username ASAP
+    echo.
+)
 echo ==================================
 echo         FUJIOS v%VERSION2%
 echo ==================================
@@ -802,6 +811,93 @@ goto GOGGLE21
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
+
+:MAINTENANCEMODE
+cls
+set "PERMS=DefaultNoUser"
+set "freecmd=0"
+set "DMP1=0"
+set "DMP2=0"
+set "DMP3=0"
+set "DMP4=0"
+set "DMP5=0"
+
+echo FOS Maintenance Terminal
+echo.
+goto MTERMINAL
+
+:MTERMINAL
+set /p "CMD=>" 
+if "%CMD%" == "SET TERMINAL/INQUIRE" (
+    set "DMP1=1"
+    echo.
+    echo %OS2% - %VERSION2%
+)
+if "%CMD%" == "SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F" (
+    set "DMP2=1"
+)
+if "%CMD%" == "SET HALT RESTART/MAINT" (
+    set "DMP3=1"
+    set "PERMS=KernelAdmin"
+    echo %OS2% BOOTAGENT %VERSION2% INITIALIZED
+    echo.
+)
+if "%CMD%" == "RUN DEBUG/ACCOUNTS.F" (
+    set "DMP4=1"
+)
+if "%CMD%" == "DUMP ACCOUNTS.F" (
+    set "DMP5=1"
+    echo.
+    echo Current Permissions [%PERMS%]
+    if "%PERMS%" equ "KernelAdmin" (
+        echo Dumping Current User Service 
+        echo Dumping Current Pswd Service 
+        echo 00x0 DUMP > MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%%valid_username%%RANDOM%%RANDOM%%valid_password%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%AdMni%RANDOM%%RANDOM%%RANDOM%a284h%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
+    )
+)
+
+if "%DMP5%" == "1" (
+    if "%DMP1%" == "1" (
+        if "%DMP2%" == "1" (
+            if "%DMP3%" == "1" (
+                if "%DMP4%" == "1" (
+                    goto OldPSWlist
+                )  
+            )
+        )
+    )
+)
+
+
+if "%CMD%" == "CMD" (
+    echo Toggled FreeCmd Use
+    if "%freecmd%" == "1" (
+        set "freecmd=0"
+    ) else (
+        set "freecmd=1"
+    )
+    echo FreeCmd State: %freecmd%
+)
+
+if "%CMD%" == "EXIT" goto BootupFujios
+if "%freecmd%" == "1" %CMD%
+goto MTERMINAL
+
+
+:OldPSWlist
+cls
+echo Memory Dump:
+echo.
+type MemoryDump.tmp
+echo.
+pause
+goto BootupFujios
 
 :SHUTDOWNMENU121
 set "lastpage=Shutdown Menu"
