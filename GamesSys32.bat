@@ -1,192 +1,297 @@
 @echo off
 setlocal enabledelayedexpansion 
-:InitializeGames
-set "Score=0"
-set "Score2=0"
-set "var1=0"
-set "var2=0"
-set "var3=0"
-set "var4=0"
-set "var5=0"
-set "var6=0"
-set "SupportGame=Unknown"
-set "Gamefolder=%USERPROFILE%\FujiGames"
-if not exist "%Gamefolder%" mkdir "%Gamefolder%"
-move *.Game %Gamefolder%
-FOR /R "%Gamefolder%" %%f IN (*.Game) DO REN "%%f" *.cmd
-:startoptions
+
+:: Initialize default setting for safety warning if not already set
+
+< Store_Settings.ini (
+  set /p SafetyWarning=
+  set /p Theme=
+  set /p BACKGROUNDCOLOR=
+  set /p FOREGROUNDCOLOR=
+  set /p LastSaved=
+)
+
+
+
+if not defined LastSaved set "LastSaved=NEVER"
+if not defined SafetyWarning set "SafetyWarning=Yes"
+if not defined Theme (
+    set "Theme=Dark"
+)
+:InitializeFolders
+:: Define Applications folder and FujiAPPs Store folder
+set "Appfolder=%USERPROFILE%\Applications"
+if not exist "%Appfolder%" mkdir "%Appfolder%"
+
+move *.APP "%Appfolder%" >nul 2>&1
+FOR /R "%Appfolder%" %%f IN (*.APP) DO (
+    ren "%%f" *.cmd
+)
+move *.APPCONFIG "%Appfolder%" >nul 2>&1
+FOR /R "%Appfolder%" %%f IN (*.APPCONFIG) DO (
+    ren "%%f" *.ini
+)
+
+:store_splashscreen
+< Store_Settings.ini (
+  set /p SafetyWarning=
+  set /p Theme=
+  set /p BACKGROUNDCOLOR=
+  set /p FOREGROUNDCOLOR=
+  set /p LastSaved=
+)
+
+if "%Theme%" == "Custom" (
+    color %BACKGROUNDCOLOR%%FOREGROUNDCOLOR% 
+)
+if "%Theme%" == "Dark" (
+    color 0F
+)
+if "%Theme%" == "Light" (
+    color F0
+)
 cls
 echo.
-echo Save Game Details
-echo.
-echo Score2: %Score2%
-echo Score: %Score%
-echo var1: %var1%
-echo var2: %var2%
-echo var3: %var3%
-echo var4: %var4%
-echo var5: %var5%
-echo var6: %var6%
-echo Supported Game: %SupportGame%
+echo ------------------------------------------------------------------------------    _____ __ version: %VERSION2%
+echo                                                                                  / ___// /_____  ________ 
+echo Welcome to the FujiAPPs Store.                                         FujiAPPs  \__ \/ __/ __ \/ ___/ _ \
+echo Here, you can install third party apps!                                          ___/ / /_/ /_/ / /  /  __/
+echo                                                                                /____/\__/\____/_/   \___/ 
+echo ------------------------------------------------------------------------------
 echo.
 echo.
+echo Welcome to the main menu. Pick one item.
 echo.
+echo Options:
+echo [1] Installed FujiAPPs
+echo [2] Settings
+echo [3] Manage FujiAPPs
+echo [4] Quit FujiAPPs Store
 echo.
-echo.
-echo Start Options
-echo.
-echo 1) Start game
-echo 2) Load slot
-echo 3) Save slot 
-echo 4) Return
-echo.
-echo.
-choice /c 1234
-   
-if %errorlevel% equ 1 (
-    goto newgame
-)
-if %errorlevel% equ 2 (
-    goto GameSlots2
-)
-if %errorlevel% equ 3 (
-    goto GameSlots
-)
-if %errorlevel% equ 4 (
-    exit /b
-)
+choice /c 12345 /n /m "> "
+if %ERRORLEVEL% == 1 goto store_installed
+if %ERRORLEVEL% == 2 goto store_settings
+if %ERRORLEVEL% == 3 goto store_manage
+if %ERRORLEVEL% == 4 goto store_quit
 
-
-
-
-
-
-:GameSlots
-set "SLOTNUM="
+:store_quit
 cls
-echo     Save Game slots
 echo.
-echo 1) Slot 1
-echo 2) Slot 2
-echo 3) Slot 3
-echo 4) Back
+echo Quitting FujiAPPs Store...
+ping localhost -n 2 >nul
+exit /b
+
+:store_manage
+cls
+echo Installed Apps:
 echo.
-echo Select the slot you want to update, remember that this
-echo feature is still in a BETA state and might not work properly,
-echo expect data losses or corruptions.
+
+setlocal enabledelayedexpansion
+set "index=0"
+
+rem Loop through the .cmd files and number them
+for %%F in ("%Appfolder%\*.cmd") do (
+    set /a index+=1
+    set "app[!index!]=%%~nF"
+    echo [!index!] %%~nF
+)
+
 echo.
-choice /c 1234 /m "Which slot are you UPDATING? "
-if %errorlevel% equ 1 (
-    set SLOTNUM=SLOT1
-    goto Update
+set /p choice="Del> "
+
+rem Validate input
+if not defined app[%choice%] (
+    echo Invalid Number!
+    pause
+    goto store_splashscreen
 )
-if %errorlevel% equ 2 (
-    set SLOTNUM=SLOT2
-    goto Update
-)
-if %errorlevel% equ 3 (
-    set SLOTNUM=SLOT3
-    goto Update
-)
-if %errorlevel% equ 4 (
-    goto startoptions
-)
+set "APPLICATIONDEL=!app[%choice%]!"
 
-goto startoptions
-
-
-
-
-:Update
-
-(
-  echo %Score%
-  echo %Score2%
-  echo %var1%
-  echo %var2%
-  echo %var3%
-  echo %var4%
-  echo %var5%
-  echo %var6%
-  echo %INPUT%
-) > %SLOTNUM%.ini
-
-echo. 
-echo %SLOTNUM% Updated
+choice /c yn /n /m "%APPLICATIONDEL%.cmd, Delete (Y/N)? "
+if %errorlevel% neq 1 goto store_splashscreen
+del /f %Appfolder%\%APPLICATIONDEL%.cmd
+del /f %Appfolder%\%APPLICATIONDEL%.ini
+echo Deleted %APPLICATIONDEL%.cmd
 pause
-goto GameSlots
+goto store_splashscreen
 
-:GameSlots2
-set "SLOTNUM="
+:store_installed
 cls
-echo     Load Game slots
+echo Installed Apps:
 echo.
-echo 1) Slot 1
-echo 2) Slot 2
-echo 3) Slot 3
-echo 4) Back
+
+setlocal enabledelayedexpansion
+set "index=0"
+
+rem Loop through the .cmd files and number them
+for %%F in ("%Appfolder%\*.cmd") do (
+    set /a index+=1
+    set "app[!index!]=%%~nF"
+    echo [!index!] %%~nF
+)
+if %index% == 0 (
+    cls
+    echo.
+    echo.
+    echo *cricket sounds*...
+    timeout /t 3 /nobreak >nul
+    echo.
+    echo "You know, its a little lonely. Maybe its time to go download some apps?"
+    echo.
+    echo.
+    timeout /t 3 /nobreak >nul
+    pause
+    goto store_splashscreen
+)
 echo.
-echo Select the slot you want to load.
-echo.
-choice /c 1234 /m "Which slot are you loading? "
-if %errorlevel% equ 1 (
-    set SLOTNUM=SLOT1
-    goto Load
-)
-if %errorlevel% equ 2 (
-    set SLOTNUM=SLOT2
-    goto Load
-)
-if %errorlevel% equ 3 (
-    set SLOTNUM=SLOT3
-    goto Load
-)
-if %errorlevel% equ 4 (
-    goto startoptions
+set /p choice="Run> "
+
+rem Validate input
+if not defined app[%choice%] (
+    echo Invalid Number!
+    pause
+    goto store_splashscreen
 )
 
-goto startoptions
+set "APPLICATION=!app[%choice%]!"
 
-:Load
-< %SLOTNUM%.ini (
-  set /p Score=
-  set /p Score2=
-  set /p var1=
+< %Appfolder%\%APPLICATION%.ini (
+  set /p AppName=
+  set /p UID=
+  set /p AppGenre=
+  set /p Developer=
   set /p var2=
   set /p var3=
   set /p var4=
   set /p var5=
   set /p var6=
-  set /p SupportGame=
+  set /p var7=
+  set /p var8=
+  set /p var9=
 )
-echo. 
-echo %SLOTNUM% Loaded
-pause
-goto GameSlots2
-
-
-
-
-:newgame
 cls
-echo Game Station-S
-echo.
-dir /O /B %Gamefolder%
-echo.
-set /p INPUT=Enter Game: 
-:: Run the selected .Game file and check for errors
-echo Running %INPUT%
-echo.
-echo.
-call %Gamefolder%\%INPUT% (
+echo. [97m
+
+if not exist %Appfolder%\%APPLICATION%.ini (
+    echo [31mWARNING:[33m There Is No Data Associated With This Application.
+    echo This App May Be A Virus Or It Might Not Even Be A
+    echo Valid FujiOS Application.
     echo.
+    echo Please Carefully Review The App Before You Continue
     echo.
-    echo Error: Failed to execute %INPUT%.
-    pause
-    goto startoptions
+    pause [97m
+    cls
+) else (
+    echo App Info:
+    echo      Name: %AppName% [%UID%]
+    echo     Genre: %AppGenre%
+    echo Developer: %Developer%
+
 )
-goto startoptions
 
+echo.
+if "%SafetyWarning%"=="Yes" (
 
+    echo [33mWARNING: Are you sure you want to open this app?
+    echo If this is a malicious app, it could harm your PC.[97m
+    choice /c yn /n /m "Proceed? [Y/N] "
+    if errorlevel 2 goto store_splashscreen
+)
+goto start_app
 
+:start_app
+cls
+call "%Appfolder%\%APPLICATION%.cmd"
+cls
+echo %APPLICATION% has ended.
+echo.
+pause
+goto store_splashscreen
+
+:store_settings
+cls
+echo.
+echo FujiAPPs Store Settings:
+echo.
+echo [1] Toggle Safety Warning (Currently: %SafetyWarning%)
+echo [2] Theme Settings (Currently: %Theme%)
+echo [3] Save Settings (Last Saved: %LastSaved%)
+echo [4] Back to Main Menu
+echo.
+choice /c 1234E /n /m "Choose an option: "
+if errorlevel 5 goto store_splashscreen
+if errorlevel 4 goto store_splashscreen
+if errorlevel 3 goto save_settings
+if errorlevel 2 goto theme_settings
+if errorlevel 1 goto toggle_safety
+
+:theme_settings
+cls
+echo.
+echo Theme/Appearance Settings:
+echo [1] Dark Theme (Black background, white text)
+echo [2] Light Theme (White background, black text)
+echo [3] Custom Theme
+echo [4] Back to Settings Menu
+echo.
+choice /c 12345 /n /m "Choose a theme option: "
+if %ERRORLEVEL%==4 goto store_settings
+
+if %ERRORLEVEL%==1 (
+    set "Theme=Dark"
+    color 0F
+    echo Dark theme applied.
+    pause
+    goto theme_settings
+)
+
+if %ERRORLEVEL%==2 (
+    set "Theme=Light"
+    color F0
+    echo Light theme applied.
+    pause
+    goto theme_settings
+)
+
+if %ERRORLEVEL%==3 (
+    set /p BACKGROUND1COLOR="Enter background color code (0-9, A-F): "
+    set /p FOREGROUND1COLOR="Enter text color code (0-9, A-F): "
+    set "Theme=Custom"
+    color %BACKGROUND1COLOR%%FOREGROUND1COLOR%
+    echo Custom theme applied.
+    pause
+    goto theme_settings
+)
+
+:save_settings
+(
+  echo %SafetyWarning%
+  echo %Theme%
+  echo %BACKGROUND1COLOR%
+  echo %FOREGROUND1COLOR%
+  echo %DATE%
+) > Store_Settings.ini
+
+< Store_Settings.ini (
+  set /p SafetyWarning=
+  set /p Theme=
+  set /p BACKGROUNDCOLOR=
+  set /p FOREGROUNDCOLOR=
+  set /p LastSaved=
+)
+echo.
+echo Settings Saved Successfully.
+pause
+goto store_settings
+
+:toggle_safety
+if "%SafetyWarning%"=="Yes" (
+    set "SafetyWarning=No"
+    echo Safety Warning disabled.
+) else (
+    set "SafetyWarning=Yes"
+    echo Safety Warning enabled.
+)
+pause
+goto store_settings
 

@@ -37,7 +37,6 @@ if not exist PRIVATEKEY.ini (
 )
 
 :FULLBootupFujios
-
 if exist PRIVATEKEY.ini (
    set /p privatekey2=<PRIVATEKEY.ini
    del PRIVATEKEY.ini
@@ -687,7 +686,7 @@ echo 01. Browser
 echo 02. Clock
 echo 03. Account Info
 echo 04. Security Center
-echo 05. Game Station-S
+echo 05. Applications
 echo 06. Fuji Drive Tools
 if %update% neq 0 (
     echo [34m07. Settings[0m
@@ -1257,6 +1256,8 @@ if "%Guest%" equ "1" echo NOT AVAILABLE AS GUEST
 if "%Guest%" equ "1" pause
 if "%Guest%" equ "1" goto File_Manager
 cls
+%colr%
+
 echo =============================
 echo          SETTINGS
 echo Session: %SESSIONSTARTTIME%
@@ -1376,32 +1377,38 @@ cls
 echo.
 echo Pick what color is best for you.
 echo.
+echo Fuji Themes:
 echo 1 - Default
-echo 2 - Green
-echo 3 - Yellow
-echo 4 - White
-echo 5 - Blue
-echo 6 - Gray
-echo 7 - Purple
+echo 2 - Dark Mode
+echo 3 - Light Mode
 echo.
-echo 8 - Finish
-choice /c 12345678 /n /M ">"
+echo Other Colors:
+echo 4 - Green
+echo 5 - Yellow
+echo 6 - Blue
+echo 7 - Gray
+echo 8 - Purple
+echo.
+echo 9 - Finish
+choice /c 123456789 /n /M ">"
 set "option=%errorlevel%"
 if "%option%"=="1" color 07
 if "%option%"=="1" set colr=color 07
-if "%option%"=="2" color 0A
-if "%option%"=="2" set colr=color 0A
-if "%option%"=="3" color 06
-if "%option%"=="3" set colr=color 06
-if "%option%"=="4" color 0F
-if "%option%"=="4" set colr=color 0F
-if "%option%"=="5" color 09
-if "%option%"=="5" set colr=color 09
-if "%option%"=="6" color 87
-if "%option%"=="6" set colr=color 87
-if "%option%"=="7" color 0D
-if "%option%"=="7" set colr=color 0D
-if "%option%"=="8" goto File_Manager
+if "%option%"=="2" color 0F
+if "%option%"=="2" set colr=color 0F
+if "%option%"=="3" color F0
+if "%option%"=="3" set colr=color F0
+if "%option%"=="4" color 0A
+if "%option%"=="4" set colr=color 0A
+if "%option%"=="5" color 06
+if "%option%"=="5" set colr=color 06
+if "%option%"=="6" color 09
+if "%option%"=="6" set colr=color 09
+if "%option%"=="7" color 87
+if "%option%"=="7" set colr=color 87
+if "%option%"=="8" color 0D
+if "%option%"=="8" set colr=color 0D
+if "%option%"=="9" goto File_Manager
 echo %colr%>colr.pkg
 goto Settings101
 
@@ -2394,7 +2401,7 @@ echo =============================
 echo      Fuji Drive Tools
 echo =============================
 echo.
-echo 01. Fuji IDE            
+echo 01. Fuji App Developer            
 echo 02. Fuji Drive           
 echo 03. Fuji Bank            
 echo 04. Fuji Word Proccessor            
@@ -2442,6 +2449,7 @@ echo %lastpage%>> memory.tmp
 cls
 call call.bat
 goto File_Manager
+
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
@@ -2453,6 +2461,7 @@ goto Crash
 
 
 :Antivirus
+set "Appfolder=%USERPROFILE%\Applications"
 if "%FirewallStatus%"=="[31mNOT COMPLETED[0m" (
     set "FirewallStatus=[32mCOMPLETED[0m"
 )
@@ -2485,9 +2494,15 @@ if "%choice%"=="4" (
     echo. >>%mainfilepath%\AntiVirusSuspTest.cmd
     echo. >>%mainfilepath%\AntiVirusSuspTest.bat
     echo. >>%mainfilepath%\AntiVirusSuspTest.exe
+
     echo. >>%mainfilepath%\AntiVirusVirusTest.cmd
     echo. >>%mainfilepath%\AntiVirusVirusTest.bat
     echo. >>%mainfilepath%\AntiVirusVirusTest.exe
+
+    echo. >>%Appfolder%\AntiVirusAppTest.cmd
+    echo Fake Virus Folders Created. Now Run The Antivirus Scan To Test
+    echo NOTE: Data Leak Protection Is Not Part Of The Test
+    pause
 )
 if "%choice%"=="5" goto File_Manager
 if "%choice%"=="6" goto File_Manager
@@ -2592,43 +2607,58 @@ goto Antivirus
 
 
 :DATCHECK
+setlocal enabledelayedexpansion 
 set "virusnmbr=0"
-
 if "%DataLeaks%"=="[31mNOT COMPLETED[0m" (
     set "DataLeaks=[32mCOMPLETED[0m"
 )
 cls
 echo Starting Virus Detection . . .
 timeout /t 1 /nobreak >nul
-
 set "quarantinepath=%mainfilepath%\quarantine"
 if not exist "%quarantinepath%" mkdir "%quarantinepath%"
 
 if exist viruslist.txt (
     set /p filelist=<viruslist.txt
-) else (
-    set "filelist=virus.exe malware.bat trojan.dll suspicious.docx AntiVirusSuspTest.cmd AntiVirusSuspTest.bat AntiVirusSuspTest.exe"
+)
+if not exist viruslist.txt (
+    set "filelist=virus.exe malware.bat trojan.dll suspicious.docx AntiVirusVirusTest.cmd AntiVirusVirusTest.bat AntiVirusVirusTest.exe AntiVirusAppTest.cmd"
     set "defaultvrslst=1"
 )
-
-if %defaultvrslst% == 1 (
+if "%defaultvrslst%"=="1" (
     echo.
     echo [33mCAUTION:[0m Virus List File Not Found. Default Virus List Loaded.
     echo.
 )
+timeout /t 3 /nobreak >nul
 echo Scanning folder: %mainfilepath% 
-
+timeout /t 3 /nobreak >nul
 echo. 
 
-:: Loop through file list
 for %%F in (%filelist%) do (
-    echo Checking For %%F.
     if exist "%mainfilepath%\%%F" (
         set /a virusnmbr+=1
         echo [33mALERT:[0m [31mFound Virus - %%F [0m
         move /Y "%mainfilepath%\%%F" "%quarantinepath%\%%F" >nul
-        set "quarantinestatus=%errorlevel%"
-        if %quarantinestatus% neq 0 echo [33mERROR:[0m [34mVIRUS MAY HAVE NOT BEEN QUARENTINED[0m
+        set "quarantinestatus=!errorlevel!"
+        if exist %mainfilepath%\%%F set "quarantinestatus=1"
+        if !quarantinestatus! neq 0 echo [33mERROR:[0m [34mVIRUS MAY HAVE NOT BEEN QUARANTINED[0m
+    )
+)
+echo. 
+timeout /t 3 /nobreak >nul
+echo Scanning folder: %Appfolder%
+timeout /t 3 /nobreak >nul
+echo. 
+
+for %%F in (%filelist%) do (
+    if exist "%Appfolder%\%%F" (
+        set /a virusnmbr+=1
+        echo [33mALERT:[0m [31mFound Virus - %%F [0m
+        move /Y "%Appfolder%\%%F" "%quarantinepath%\%%F" >nul
+        set "quarantinestatus=!errorlevel!"
+        if exist %Appfolder%\%%F set "quarantinestatus=1"
+        if !quarantinestatus! neq 0 echo [33mERROR:[0m [34mVIRUS MAY HAVE NOT BEEN QUARANTINED[0m
     )
 )
 echo.
@@ -2641,17 +2671,32 @@ echo Scanning folder: %mainfilepath%
 echo. 
 
 :: Scan for suspicious files
+set "filefound=0"
+
+:: Initialize filefound flag
+set "filefound=0"
+
+:: Check if any suspicious files exist
 for %%F in (%mainfilepath%\*.exe %mainfilepath%\*.bat %mainfilepath%\*.cmd) do (
-    echo [33mALERT:[0m [31mSuspicious file detected - %%~nxF[0m
-    :: Prompt user for action
-    choice /C QI /M "Quarantine (Q) or Ignore (I) %%~nxF?"
-    if errorlevel 2 (
-        echo Ignored: %%~nxF
-    ) else (
-        move /Y "%%F" "%quarantinepath%\%%~nxF" >nul
-        set "quarantinestatus=%errorlevel%"
-        if %quarantinestatus% neq 0 echo [33mERROR:[0m [34mFILE MAY HAVE NOT BEEN QUARENTINED[0m
+    set "filefound=1"
+)
+
+:: Only proceed if at least one file was found
+if !filefound!==1 (
+    for %%F in (%mainfilepath%\*.exe %mainfilepath%\*.bat %mainfilepath%\*.cmd) do (
+        echo [33mALERT:[0m [31mSuspicious file detected - %%~nxF[0m
+        :: Prompt user for action
+        choice /C QI /M "Quarantine (Q) or Ignore (I) %%~nxF?"
+        if errorlevel 2 (
+            echo Ignored: %%~nxF
+        ) else (
+            move /Y "%%F" "%quarantinepath%\%%~nxF" >nul
+            set "quarantinestatus=!errorlevel!"
+            if !quarantinestatus! neq 0 echo [33mERROR:[0m [34mFILE MAY HAVE NOT BEEN QUARANTINED[0m
+        )
     )
+) else (
+    echo No suspicious files found.
 )
 echo.
 echo Scan complete.
@@ -2665,18 +2710,18 @@ set "regvarnumber=Registration Number [32mNOT DETECTED[0m"
 set "Uservarname=Username [32mNOT DETECTED[0m"
 set "Passvarword=Password [32mNOT DETECTED[0m"
 set "UAvarK=Universal Access Key [32mNOT DETECTED[0m"
-
 if "%valid_username%"=="" (
     echo Error: valid_username variable is not set.
+    pause
     exit /b 1
 )
 if "%valid_password%"=="" (
     echo Error: valid_password variable is not set.
+    pause
     exit /b 1
 )
-
-
 set "leakDetected=0"
+set "leak2Detected=0"
 for %%F in (*.dmp) do (
     echo Analyzing file: %%F
     timeout /t 3 /nobreak >nul
@@ -2729,36 +2774,37 @@ for %%F in (*.dmp) do (
 
 if "%password%"=="%UAK%" goto GrantedACC
 
-
 timeout /t 2 /nobreak >nul
 cls
-if "%leakDetected%" == "1" (
+if "%leakDetected%" neq "0" (
     echo.
-    echo [33mWARNING Your Account May Be At Risk.[0m
+    echo [33mWARNING: Your Account May Be At Risk.[0m
     echo.
-    echo [33mYour data [Usernames Passwords etc.] may have been exposed[0m
-    echo [33mPlease Change Your Password And Username ASAP[0m
-    if %leak2Detected% == 1 echo.
-    if %leak2Detected% == 1 echo [31mDANGER:[0m [34mUniveral Access Key Has Been Leaked, Secure Account Immediately.[0m
-    if %leak2Detected% == 1 echo [34mThe Univeral Access Key Can Give The Attacker Full Access To Your Account.[0m
+    echo [33mYour data [Usernames, Passwords, etc.] may have been exposed.[0m
+    echo [33mPlease change your password and username ASAP.[0m
     echo.
+    if %leak2Detected% == 1 (
+        echo [31mDANGER:[0m [34mUniversal Access Key Has Been Leaked. Secure Account Immediately![0m
+        echo [34mThe Universal Access Key can give the attacker full access to your account.[0m
+        echo.
+    )
     echo ==============================================
     echo.
-    echo %regvarnumber% In Data Leak
-    echo %Uservarname% In Data Leak
-    echo %Passvarword% In Data Leak
-    echo %UAvarK% In Data Leak
+    echo [31mLeaked Information:[0m
+    echo [33m%regvarnumber%[0m In Data Leak
+    echo [33m%Uservarname%[0m In Data Leak
+    echo [33m%Passvarword%[0m In Data Leak
+    echo [33m%UAvarK%[0m In Data Leak
     echo.
     echo ==============================================
     echo.
 ) else (
     echo.
-    echo No data leaks detected. GREAT JOB!
+    echo [32mNo data leaks detected. GREAT JOB![0m
     echo.
 )
 pause
 goto Antivirus
-
 
 
 :ABORT121

