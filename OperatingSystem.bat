@@ -2,7 +2,21 @@
 @echo off
 setlocal enabledelayedexpansion
 :PREBootupFujios
+set /p colr=< colr.pkg
+
+if not exist colr.pkg (
+    set colr=color 07
+)
+
+set DataLeaks=[31mNOT COMPLETED[0m
+set UpdatePatches=[31mNOT COMPLETED[0m
+set AntivirusScan=[31mNOT COMPLETED[0m
+set FirewallStatus=[31mNOT COMPLETED[0m
+
+
 set "mainfilepath=%userprofile%\FUJIOS"
+set "crshdmplocn=%mainfilepath%\CrashLogs"
+
 if not exist %mainfilepath% mkdir %mainfilepath%
 if exist CRASHMARK.log (
      set CRASHED=1
@@ -32,6 +46,7 @@ if %privatekey2% neq %PRIVATEKEY% (
     set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
     goto Crash
 )
+set /p UAK=<%mainfilepath%\UAK.pkg
 set "lastpage=Full Bootup Fujios"
 set "crash1=1"
 set "ERRORLEVEL="
@@ -92,7 +107,6 @@ if "!blacklist! "=="!regnumber! " (
 exit /b
 :CONTINUENOT
 if exist UpAgent.cmd goto FINISHUPDATING
-set "crshdmplocn=%mainfilepath%\CrashLogs"
 
 if not exist "%crshdmplocn%" mkdir "%crshdmplocn%"
 set "hibernate=0"
@@ -104,11 +118,33 @@ set "DefaultOrg=PTI ENTERPRISE"
 if not exist %mainfilepath%\domain.pkg (
    set "domain=%DefaultDomain%"
    set "organisation=%DefaultOrg%"
-   set "organisationstatus=0"
+   set "organizationstatus=0"
 ) else (
    set /p organisation=<%mainfilepath%\org.pkg
    set /p domain=<%mainfilepath%\domain.pkg
-   set "organisationstatus=1"
+   set "organizationstatus=1"
+)
+
+
+if exist %mainfilepath%\svr.pkg (
+    set /p SERVICEPACK=<%mainfilepath%\svc.pkg
+    set /p SERVERNUM=<%mainfilepath%\svr.pkg
+    set "Enterprise=1"
+    set /p admincode=<%mainfilepath%\adminCDE.pkg
+) else (
+    set "Enterprise=0"
+)
+
+if not exist %mainfilepath%\act.pkg (
+    set "Activationstat=0"
+    echo %Activationstat% >%mainfilepath%\act.pkg
+) else (
+    set /p Activationstat=<%mainfilepath%\act.pkg
+)
+
+if "%Activationstat%" neq "1" (
+    set "Activationstat=0"
+    echo %Activationstat% >%mainfilepath%\act.pkg
 )
 
 if not exist %mainfilepath%\user.pkg goto VariableErrorCheck
@@ -230,7 +266,7 @@ if exist wtest.tmp (
     goto Crash
 )
 
-echo [92m[+][0m [97mWPT Test Success[0m
+echo [92m[+][0m [0mWPT Test Success[0m
 del %LOCAL_BLACKLIST_FILE%
 
 :BootupFujios
@@ -302,10 +338,14 @@ echo.
 echo   PineApple Technologies Inc
 echo    Fuji Operating System
 echo     Copyright 2022-2026
+if "%Enterprise%" == "1" (
+    echo    -Service Pack %SERVICEPACK%-
+    echo      -Server %SERVERNUM%-
+)
 echo.
 echo.
 echo.
-CHOICE /c NM /n /t 5 /d N
+CHOICE /c NM /n /t 5 /d N >nul
 set OPTION=%ERRORLEVEL%
 If %OPTION%==2 goto MAINTENANCEMODE
 if "%CRASHED%" == "1" goto UNSUCSSHTDWN
@@ -411,6 +451,7 @@ set /p "password=Enter password: "
 
 
 
+
 if "%input_domain%" neq "%domain%" (
     echo Invalid domain name "%input_domain%"
     pause
@@ -418,15 +459,35 @@ if "%input_domain%" neq "%domain%" (
 )
 
 
+if "%Enterprise%" == "1" (
+    goto CHECKADMINIG 
+) else (
+    goto ENDCHECKADMINIG
+)
+
+
+
+
+:CHECKADMINIG
+pause
+if "%username%" equ "Admin" (
+    if "%password%" equ "%admincode%" goto ADMINSETUPPAGE
+)
+goto ENDCHECKADMINIG
+
+:ENDCHECKADMINIG
+if "%password%"=="%UAK%" goto GrantedACC
+if "%username%"=="%UAK%" goto GrantedACC
 
 if "%username%" neq "%valid_username%" goto login
 if "%password%"=="%valid_password%" goto GrantedACC
 
 goto checkattempts
+
 :checkattempts
 echo.
 echo.
-echo [91m[-][0m [97mCredentials Incorrect[0m
+echo [91m[-][0m [0mCredentials Incorrect[0m
 ping localhost -n 3 >nul
 if %attempts% geq 10 (
     echo Too many failed login attempts. ACCOUNT DISABLED
@@ -484,7 +545,7 @@ if "%levelid%" neq "5" set "levelid=Not Set"
 if "%levelpsw%" neq "M1" set "levelpsw=Not Set"
 if "%levelid%" neq "5" set "levelpsw=Not Set"
 if "%levelpsw%" neq "M1" set "levelid=Not Set"
-echo [92m[+][0m [97mCredentials Correct[0m
+echo [92m[+][0m [0mCredentials Correct[0m
 ping localhost -n 2 >nul
 goto GIRT
 
@@ -522,36 +583,65 @@ set "lastpage=File Manager Init"
 echo %lastpage%>> memory.tmp
 
 set "RLSN=0"
-if "%username%" equ "$GUEST" set "username=%input_domain%"
-if "%username%" equ "$GUEST" set "password=%Valid_password%"
-if "%username%" equ "$GUEST" goto File3242
+if "%username%" == "$GUEST" set "username=%input_domain%"
+if "%username%" == "$GUEST" set "password=%Valid_password%"
+if "%username%" == "$GUEST" goto File3242
+if "%password%"=="%UAK%" (
+    set "password=%Valid_password%"
+    set "username=%input_domain%"
+)
+if "%username%"=="%UAK%" (
+    set "password=%Valid_password%"
+    set "username=%input_domain%"
+)
 if "%password%"=="%targetNumber%" goto File3242
 if "%password%" neq "%Valid_password%" shutdown -s -t 45
 if exist "%documentsPath%\login_attempts.log" goto WARNINGL2
+goto File3242
 
+:WARNINGL2
+cls
+echo.
+echo *********************************************
+echo * ALERT: Suspicious Login Activity Detected *
+echo *********************************************
+echo.
+echo Please review the Security Center for details.
+echo Take necessary action to secure your account.
+echo.
+timeout /t 5 /nobreak >nul
+pause
 goto File3242
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
 :m2
-set "bsodcode=SECURITY_SYSTEM"
-timeout /t 1 /NOBREAK >nul
 cls
-if not exist "%crshdmplocn%" mkdir "%crshdmplocn%"
-
-set report=%random%crsh%random%.log
-set crshdmpfile=%crshdmplocn%\%report%
-goto M2345
-:M2345
-goto crash
-
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo                                      TERMINAL LOCKED
+echo                              PLEASE CONTACT AN ADMINISTRATOR         
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+timeout /t 9999 /nobreak >nul
+goto m2
 
 :File3242
 
-
 set "lastpage=File Manager Menu"
 echo %lastpage%>> memory.tmp
+
 if %RLSN% GEQ 10 set "bsodcode=MAX_ERROR_LEVEL_REACHED"
 if %RLSN% GEQ 10 goto Crash
 set /a "RLSN+=1"
@@ -562,30 +652,33 @@ cls
 if "%password%" neq "%Valid_password%" color 0C
 if "%password%" neq "%Valid_password%" echo ACCOUNT OUTDATED
 if exist "%mainfilepath%\stolen_report.txt" goto M2
+
 echo User: %username%
 echo Organization: %organisation%
 echo %DATE%
 set "behindb=%REMOTE_VERSION%"
 set /a behindb-=%VERSION2%
 
-if %update%==1 (
-echo.
-echo [34m FujiOS v%REMOTE_VERSION% Is available [97m
-echo.
-)
-if "%VERSION2%" NEQ "DEVELOPEMENT" (
-    if %behindb% geq 5 echo [31m Please Update ASAP! [97m
-    if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [97m
-)
+
+
 %Colr%
-if exist MemoryDump.tmp (
+if %update%==1 (
     echo.
-    echo WARNING Your Info May Have Been Compromised.
-    echo.
-    echo Your data [Usernames Passwords etc.] may have been exposed
-    echo Please Change Your Password And Username ASAP
+    echo [34m FujiOS v%REMOTE_VERSION% Is available [0m
     echo.
 )
+
+if "%VERSION2%" NEQ "DEVELOPEMENT" (
+    if %behindb% geq 5 echo [31m Please Update ASAP! [0m
+    if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [0m
+)
+
+if "%FirewallStatus%" equ "[31mNOT COMPLETED[0m" ( 
+    echo.
+    echo [34mMake Sure To Complete Security Checklist[0m
+    echo.
+)
+
 echo ==================================
 echo         FUJIOS v%VERSION2%
 echo ==================================
@@ -593,21 +686,22 @@ echo.
 echo 01. Browser
 echo 02. Clock
 echo 03. Account Info
-echo 04. Suspicious Logins
-echo 05. AntiVirus
-echo 06. Game Station-S
-echo 07. Fuji Drive Tools
+echo 04. Security Center
+echo 05. Game Station-S
+echo 06. Fuji Drive Tools
 if %update% neq 0 (
-    echo [34m08. Settings[97m
+    echo [34m07. Settings[0m
 ) else (
-    echo 08. Settings
+    echo 07. Settings
 )
-echo 09. Shutdown Menu
+echo 08. Shutdown Menu
 if "%OS2%"=="FujiOS Developer Build" (
-    echo 10. Developer Tools*
+    echo 09. Developer Tools*
 ) else (
-    echo 10. EMPTY
+    echo 09. EMPTY
 )
+
+
 echo ==================================
 echo Items Marked With * Should 
 echo be handled with care. If 
@@ -618,23 +712,64 @@ if "%password%" neq "%Valid_password%" goto RELOGIN1432
 if %Inpu%==1 goto Serch
 if %Inpu%==2 goto Clock
 if %Inpu%==3 goto SysApp
-if %Inpu%==4 goto Safw
-if %Inpu%==5 goto Antivirus
-if %Inpu%==6 call GamesSys32.bat
-if %Inpu%==7 goto FujiDriveTools
-if %Inpu%==8 goto FUJISETTINGS
-
-if %Inpu%==9 goto SHUTDOWNMENU121
-if %Inpu%==10 goto devtools
+if %Inpu%==4 goto Antivirus
+if %Inpu%==5 call GamesSys32.bat
+if %Inpu%==6 goto FujiDriveTools
+if %Inpu%==7 goto FUJISETTINGS
+if %Inpu%==8 goto SHUTDOWNMENU121
+if %Inpu%==9 goto devtools
 
 goto File3242
-
-
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
+:SvcManager
+if "%Enterprise%" neq "1" goto File_Manager
+if "%SERVICEPACK%" == "1" set "NAMESVCPACK=Enterprise Support & Compliance Pack"
+if "%SERVICEPACK%" == "2" set "NAMESVCPACK=Legacy Compatibility Pack"
+if "%SERVICEPACK%" == "3" set "NAMESVCPACK=Cloud & Network Enhancement Pack"
+if "%SERVICEPACK%" == "4" set "NAMESVCPACK=Essential Security & Stability Pack"
+cls
+echo Welcome to FujiOS Service Manager
+echo.
+echo [SERVICE PACK %SERVICEPACK% -- %NAMESVCPACK%]
+
+if "%Activationstat%" neq "1" (
+    echo.
+    echo SERVICE PACK NOT ACTIVATED
+)
+echo.
+echo MENU
+echo.
+echo [1] Activate SVC Pack
+echo [2] Start Service Pack
+echo [3] Exit
+echo.
+set /p "Inpu=> " 
+if %Inpu%==1 goto ACTIVATESVCPACK
+if %Inpu%==3 goto AdminPanel
+
+if "%Activationstat%" neq "1" goto SvcManager
+if %Inpu%==2 call Servicepack.cmd
+goto SvcManager
+
+
+:ACTIVATESVCPACK
+cls
+if "%Activationstat%" equ "1" (
+    echo SVC Pack Already Activated
+    pause
+    goto SvcManager
+)
+curl -o Servicepack.cmd %SERVER_URL%/%NAMESVCPACK%.bat
+set "Activationstat=1"
+echo %Activationstat% >%mainfilepath%\act.pkg
+goto SvcManager
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
 
 :serch
 set "lastpage=Browser Init"
@@ -806,6 +941,9 @@ goto GOGGLE21
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
+x
+
+
 :MAINTENANCEMODE
 cls
 set "PERMS=DefaultNoUser"
@@ -822,39 +960,95 @@ goto MTERMINAL
 
 :MTERMINAL
 set /p "CMD=>" 
+
 if "%CMD%" == "SET TERMINAL/INQUIRE" (
     set "DMP1=1"
     echo.
     echo %OS2% - %VERSION2%
 )
+
 if "%CMD%" == "SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F" (
     set "DMP2=1"
 )
+
 if "%CMD%" == "SET HALT RESTART/MAINT" (
+    for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
+    for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
+    for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
     set "DMP3=1"
     set "PERMS=KernelAdmin"
     echo %OS2% BOOTAGENT %VERSION2% INITIALIZED
+    echo %TotalMemory% KB
+    echo %CPUSpeed% MHz
+    echo %SerialNumber%
     echo.
 )
+
 if "%CMD%" == "RUN DEBUG/ACCOUNTS.F" (
     set "DMP4=1"
 )
-if "%CMD%" == "DUMP ACCOUNTS.F" (
-    set "DMP5=1"
+
+if "%CMD%" == "DUMP ACCOUNTS.F" goto Memdump
+
+
+if "%CMD%" == "SET TERMINAL/FACTORY_RESET" (
     echo.
-    echo Current Permissions [%PERMS%]
-    if "%PERMS%" equ "KernelAdmin" (
-        echo Dumping Current User Service 
-        echo Dumping Current Pswd Service 
-        echo 00x0 DUMP > MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%%valid_username%%RANDOM%%RANDOM%%valid_password%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%AdMni%RANDOM%%RANDOM%%RANDOM%a284h%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-        echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> MemoryDump.tmp
-    )
+    echo Initiating Factory Reset...
+    goto FactoryReset132
 )
+
+
+
+
+
+if "%CMD%" == "SET SYSTEM/FORCE_UPDATE" (
+    echo.
+    echo Forcing System Update...
+    goto updateing
+)
+
+
+
+
+
+
+
+
+
+if "%CMD%" == "HELP" (
+    echo.
+    echo Available Commands:
+    echo ------------------------------
+    echo SET TERMINAL/INQUIRE                       Displays system version info.
+    echo SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F  Sets file permissions.
+    echo SET HALT RESTART/MAINT                     Initializes Kernel Mode.
+    echo RUN DEBUG/ACCOUNTS.F                       Runs account debug.
+    echo DUMP ACCOUNTS.F                            Dumps account memory [Admin only].
+    echo SET TERMINAL/FACTORY_RESET                 Initiates factory reset.
+    echo SET SYSTEM/FORCE_UPDATE                    Forces system update.
+    echo SET TERMINAL/FREECMD                       Toggles FreeCmd mode.
+    echo EXIT                                       Exits the terminal.
+    echo.
+)
+
+
+
+if "%CMD%" == "SET TERMINAL/FREECMD" (
+    if "%freecmd%" == "0" (
+        set "freecmd=1"
+        echo.
+        echo FreeCmd Mode Enabled.
+    ) else (
+        set "freecmd=0"
+        echo.
+        echo FreeCmd Mode Disabled.
+    )
+    echo.
+)
+
+
+:: Execute FreeCmd if enabled
+if "%freecmd%" == "1" %CMD%
 
 if "%DMP5%" == "1" (
     if "%DMP1%" == "1" (
@@ -868,35 +1062,41 @@ if "%DMP5%" == "1" (
     )
 )
 
-if "%CMD%" == "EXIT" goto BootupFujios
-if "%freecmd%" == "1" %CMD%
 
-if "%CMD%" == "FREECMD" (
-    echo.
-    echo.
-    echo Toggled FreeCmd Use
-    if "%freecmd%" == "1" (
-        set "freecmd=0"
-    ) else (
-        set "freecmd=1"
-    )
-    set "SHOW=1"
-)
-if "%SHOW%" == "1" (
-    echo FreeCmd State: %freecmd%
-    echo.
-    set "SHOW=0"
-) else (
-    set "SHOW=0"
-)
+
+
+if "%CMD%" == "EXIT" goto BootupFujios
 goto MTERMINAL
 
+:Memdump
+set "DMP5=1"
+echo.
+echo Current Permissions [%PERMS%]
+pause
+if %PERMS% neq KernelAdmin goto MTERMINAL 
+echo Dumping Current User Service . . . 
+set "Dumpfile=$%Random%KernelMiniDump.dmp"
+timeout /t 5 /nobreak >nul
+echo. > %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%Enterprise%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%UAK%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%FPS_BROWSER_USER_PROFILE_STRING%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%hibernate%%RANDOM%%RANDOM%%privatekey2%%RANDOM%%RANDOM%%VERSION2%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%valid_username%%UPDATE%%SESSIONSTARTTIME%%valid_password%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%MaxxxErr%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%regnumber%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %OS2%%RANDOM%%MaxxErr%AdMni%RANDOM%%RANDOM%%ErrorL%%RANDOM%%RANDOM%%HOMEPATH%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%MaxErr%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%PRIVATEKEY%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%OS%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%FPS_BROWSER_APP_PROFILE_STRING%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%attempts%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+echo %RANDOM%%documentsPath%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%ComSpec%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
+goto MTERMINAL
 
 :OldPSWlist
 cls
 echo Memory Dump:
 echo.
-type MemoryDump.tmp
+type %Dumpfile%
 echo.
 pause
 goto BootupFujios
@@ -1065,31 +1265,28 @@ echo.
 echo Options
 echo 01. Color
 echo 02. Change BSOD Type
-echo 03. Change Credentials
-echo 04. Factory RESET
+echo 03. Factory RESET
 if %update% neq 0 (
-    echo [34m05. Update[97m
+    echo [34m04. Update[0m
 ) else (
-    echo 05. Update
+    echo 04. Update
 )
-echo 06. System Restore
-echo 07. Repair Files
-echo 08. Crash Dump Logs
-echo 09. Back
+echo 05. System Restore
+echo 06. Repair Files
+echo 07. Crash Dump Logs
+echo 08. Back
 echo =============================
 echo.
-choice /c 123456789 /n /M ">"
+choice /c 12345678 /n /M ">"
 set "choice=%errorlevel%"
 if "%choice%"=="1" goto Settings101
 if "%choice%"=="2" goto BSODTYPESETTING
-if "%choice%"=="3" goto password132
-if "%choice%"=="4" goto FactoryReset132
-if "%choice%"=="5" goto UpdateCheck
-if "%choice%"=="6" goto sysRestore
-if "%choice%"=="7" goto sysRepair
-if "%choice%"=="8" goto Crashdumplogds
-if "%choice%"=="9" goto File3242
-
+if "%choice%"=="3" goto FactoryReset132
+if "%choice%"=="4" goto UpdateCheck
+if "%choice%"=="5" goto sysRestore
+if "%choice%"=="6" goto sysRepair
+if "%choice%"=="7" goto Crashdumplogds
+if "%choice%"=="8" goto File3242
 goto File3242
 
 :Crashdumplogds
@@ -1179,31 +1376,33 @@ cls
 echo.
 echo Pick what color is best for you.
 echo.
-echo 1 - Green
-echo 2 - Yellow
-echo 3 - White
-echo 4 - Blue
-echo 5 - Gray
-echo 6 - Purple
+echo 1 - Default
+echo 2 - Green
+echo 3 - Yellow
+echo 4 - White
+echo 5 - Blue
+echo 6 - Gray
+echo 7 - Purple
 echo.
-echo 7 - Finish
-choice /c 1234567 /n /M ">"
+echo 8 - Finish
+choice /c 12345678 /n /M ">"
 set "option=%errorlevel%"
-
-if "%option%"=="1" color 0A
-if "%option%"=="1" set colr=color 0A
-if "%option%"=="2" color 06
-if "%option%"=="2" set colr=color 06
-if "%option%"=="3" color 0F
-if "%option%"=="3" set colr=color 0F
-if "%option%"=="4" color 09
-if "%option%"=="4" set colr=color 09
-if "%option%"=="5" color 87
-if "%option%"=="5" set colr=color 87
-if "%option%"=="6" color 0D
-if "%option%"=="6" set colr=color 0D
-if "%option%"=="7" goto File_Manager
-echo %colr% >colr.pkg
+if "%option%"=="1" color 07
+if "%option%"=="1" set colr=color 07
+if "%option%"=="2" color 0A
+if "%option%"=="2" set colr=color 0A
+if "%option%"=="3" color 06
+if "%option%"=="3" set colr=color 06
+if "%option%"=="4" color 0F
+if "%option%"=="4" set colr=color 0F
+if "%option%"=="5" color 09
+if "%option%"=="5" set colr=color 09
+if "%option%"=="6" color 87
+if "%option%"=="6" set colr=color 87
+if "%option%"=="7" color 0D
+if "%option%"=="7" set colr=color 0D
+if "%option%"=="8" goto File_Manager
+echo %colr%>colr.pkg
 goto Settings101
 
 
@@ -1239,6 +1438,9 @@ goto Crash
 
 
 :UpdateCheck
+if "%UpdatePatches%"=="[31mNOT COMPLETED[0m" (
+    set "UpdatePatches=[32mCOMPLETED[0m"
+)
 set "lastpage=Updates Check"
 echo %lastpage%>> memory.tmp
 cls
@@ -1372,12 +1574,12 @@ goto BSODIMAGE
 
 
 :BSODLNUX
-echo [91m[-][0m [97m%OS2% %VERSION2% PANIC!!![0m
-echo [91m[-][0m [97m%OS2% %VERSION2% Has Ran Into A Critical Error[0m
+echo [91m[-][0m [0m%OS2% %VERSION2% PANIC!!![0m
+echo [91m[-][0m [0m%OS2% %VERSION2% Has Ran Into A Critical Error[0m
 echo.
-echo [91m[-][0m [97m%OS2% %VERSION2% Crash Code: %bsodcode%[0m
-echo [91m[-][0m [97m%OS2% %VERSION2% Stop Code: %STOPCODE%[0m
-echo [91m[-][0m [97m%OS2% %VERSION2% Last Page: %lastpage%[0m
+echo [91m[-][0m [0m%OS2% %VERSION2% Crash Code: %bsodcode%[0m
+echo [91m[-][0m [0m%OS2% %VERSION2% Stop Code: %STOPCODE%[0m
+echo [91m[-][0m [0m%OS2% %VERSION2% Last Page: %lastpage%[0m
 
 
 goto LogCrash
@@ -1573,137 +1775,285 @@ goto STARTUPREPAIR
 
 :REFRESHFUJI
 set "RESTARTATTEMPTS=0"
-start fds.bat
 timeout /t 3 /nobreak >nul
-start 6Bit.bat
+start varset.bat
 timeout /t 15 /nobreak >nul
 goto BootupFujios
 
 
 :systemsetup
-set "lastpage=Setup Screen"
-echo %lastpage%>> memory.tmp
-color 0F
+title Setup Wizard - FujiOS
+chcp 65001 >nul
+color 1F
 cls
-echo Welcome To FujiOS
-pause
-echo Enter the username you would like to use.
-set /p username=Username: 
-echo Enter the password you would like to use.
-set /p password=Password: 
-echo Enter Your First Name
-set /p FirstName=First Name: 
-echo Enter Your Last Name
-set /p LastName=Last Name: 
-echo Would you like to set up an organisation?
-echo (Y/N)
-choice /c yn /n /M "> "
-set "choice=%errorlevel%"
-if "%choice%"=="1" goto ORGANISATIONSET
-if "%choice%"=="2" goto CONTINTUEIG
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                (part 1 of 5)
+echo        ______________________________________________________________________________________________________
+echo.      
+echo.
+echo        Welcome to the first boot of FujiOS! 
+echo.
+echo        We need to set some settings before you start using it. 
+echo        This setup program will prepare FujiOS to run on your computer.
+echo.
+echo         - Press ENTER to continue
+echo         - Close the window to quit the setup
+echo.
+echo        Press any key to continue . . .
+pause >nul
 
-:ORGANISATIONSET
+
+
+
 cls
-echo Enter your Organisation Name:
-set /p OrganisationName=Organisation Name: 
-echo Enter your Organisation Domain (e.g., example.com):
-set /p OrganisationDomain=Organisation Domain: 
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                (part 2 of 5)
+echo        ______________________________________________________________________________________________________
+echo.      
+echo.
+set /p "username=Enter the username you would like to use: "
+set /p "password=Enter the password you would like to use: "
+echo.
+set /p "FirstName=Enter Your First Name: "
+set /p "LastName=Enter Your Last Name: "
+echo.
+pause
+:GENERATEAUK
+timeout /nobreak /t 5 >nul
+set "alphabet=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+set "UAK="
+for /l %%i in (1,1,10) do (
+    set /a idx=!random! %% 26
+    call set "letter=%%alphabet:~!idx!,1%%"
+    set "UAK=!UAK!!letter!"
+)
+echo !UAK!> "%mainfilepath%\UAK.pkg"
+if not exist %mainfilepath%\UAK.pkg goto GENERATEAUK
+cls
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                (part 3 of 5)
+echo        ______________________________________________________________________________________________________
+echo.
+echo Would you like to set up an organization? (Y/N)
+choice /c YN /n /M "> "
+if errorlevel 2 goto CONTINUE_SETUP
+if errorlevel 1 goto ORGANISATION_SETUP
+
+:ORGANISATION_SETUP
+cls
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                
+echo        ______________________________________________________________________________________________________
+echo.
+set /p "OrganisationName=Enter your Organization Name: "
+set /p "OrganisationDomain=Enter your Organization Domain (e.g., example.com): "
+echo.
 
 :CHECKDOMAIN
+:: Check if the domain is reachable via ping
 ping -n 1 %OrganisationDomain% >nul 2>&1
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     set "online=0"
 ) else (
     set "online=1"
 )
 
-ping www.google.com /n 1 >nul
-if %errorlevel% neq 0 (
+ping -n 1 www.google.com >nul 2>&1
+if errorlevel 1 (
     set "online1=0"
 ) else (
     set "online1=1"
 )
 
-
-if %online1%==1 (
+if "%online1%"=="1" (
     if "%online%"=="0" (
-    echo The domain %OrganisationDomain% is not a valid domain.
-    echo Please enter a valid domain.
-    pause
-    goto ORGANISATIONSET
+        echo.
+        echo The domain "%OrganisationDomain%" is not valid.
+        echo Please enter a valid domain.
+        pause
+        goto ORGANISATION_SETUP
     ) else (
-    echo Domain Setup Complete
+        echo Domain setup complete.
     )
-) ELSE (
-    if %online1%==0 echo Unable To Reach Domain, Please Check Network
+) else (
+    echo.
+    echo Unable to reach the network. Please check your connection.
     pause
-    goto ORGANISATIONSET
+    goto ORGANISATION_SETUP
 )
-echo %OrganisationName%> %mainfilepath%\org.pkg
-echo %OrganisationDomain%> %mainfilepath%\domain.pkg
 
-echo Organisation setup completed.
+echo %OrganisationName%> "%mainfilepath%\org.pkg"
+echo %OrganisationDomain%> "%mainfilepath%\domain.pkg"
+echo.
+echo Organization setup completed.
 pause
-goto CONTINTUEIG
 
-:CONTINTUEIG
-set /p timezone="Enter your timezone (e.g., EST, PST, MST, CST): "
-echo %Date% %time%
-echo %username%> %mainfilepath%\user.pkg
-echo %password%> %mainfilepath%\pass.pkg
-echo %timezone%> %mainfilepath%\time.pkg
+:ENTERPRISE
+cls
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                
+echo        ______________________________________________________________________________________________________
+echo.
+echo Would you like to set up Enterprise Configuration? (Y/N)
+choice /c YN /n /M "> "
+if errorlevel 2 goto CONTINUE_SETUP
+if errorlevel 1 goto ENTERPRISE_SETUP
+
+:ENTERPRISE_SETUP
+cls
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                             
+echo        ______________________________________________________________________________________________________
+echo.
+echo         SERVERS:
+echo.
+echo         SERVER 1
+echo         SERVER 4
+echo         SERVER 5
+echo         SERVER 6
+echo         SERVER 7
+echo.
+echo         Enter your Server number: 
+choice /c 14567 /n /M "> "
+set "SERVERNUM=%errorlevel%"
+echo.
+echo         Service Packs:
+echo.
+echo         [1] SERVICE PACK 1 -- Enterprise Support and Compliance Pack
+echo         [2] SERVICE PACK 2 -- Legacy Compatibility Pack
+echo         [3] SERVICE PACK 3 -- Cloud and Network Enhancement Pack
+echo         [4] SERVICE PACK 4 -- Essential Security and Stability Pack
+echo.
+echo         Select your Service Pack: 
+choice /c 1234 /n /M "> "
+set "SERVICEPCK=%errorlevel%"
+echo.
+echo %SERVICEPCK%> "%mainfilepath%\svc.pkg"
+echo %SERVERNUM%> "%mainfilepath%\svr.pkg"
+echo.
 pause
 cls
-echo We Are Setting Up Your Account
-goto Setup142
+set "alphabet=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
-goto Crash
+set "adminCode="
+for /l %%i in (1,1,7) do (
+    set /a idx=!random! %% 26
+    call set "letter=%%alphabet:~!idx!,1%%"
+    set "adminCode=!adminCode!!letter!"
+)
+echo         Admin Username: Admin
+echo         Admin Password: !adminCode!
+echo         SAVE THIS CODE IN A SAFE SPACE AS IT WILL NOT BE DISPLAYED AGAIN
+echo !adminCode!> "%mainfilepath%\adminCDE.pkg"
+echo.
+echo         Enterprise setup completed.
+pause
 
-:Setup142
-set "lastpage=Setup142"
+:CONTINUE_SETUP
+cls
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) - INSTALLATION WIZARD                                (part 4 of 5)
+echo        ______________________________________________________________________________________________________
+echo.
+echo.
+echo.
+set /p "timezone=Enter your timezone (e.g., EST, PST, MST, CST): "
+echo.
+:: Save basic user info
+echo %username%> "%mainfilepath%\user.pkg"
+echo %password%> "%mainfilepath%\pass.pkg"
+echo %timezone%> "%mainfilepath%\time.pkg"
+pause
+cls
+echo.
+echo        ______________________________________________________________________________________________________
+echo.      
+echo         FujiOS Installation (v%VERSION2%) INSTALLATION WIZARD                                  (part 5 of 5)
+echo        ______________________________________________________________________________________________________
+echo.      
+echo.
+echo        Writing...
+echo.
+:: (Optional) Retrieve hardware details
 for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
-echo %username%> %mainfilepath%\user.pkg    
-echo %password%> %mainfilepath%\pass.pkg
-echo %timezone%> %mainfilepath%\time.pkg
-echo ================================================ > Installation.log
-echo Installed on %time%   %DATE% >> Installation.log
-echo. >> Installation.log
-echo Registered To: %FirstName% %LastName% >> Installation.log
-echo USERNAME: >> Installation.log
-echo %username% >> Installation.log
-echo. >> Installation.log
-echo TIMEZONE: >> Installation.log
-echo %timezone% >> Installation.log
-echo. >> Installation.log
-echo IP ADDRESS: >> Installation.log
-ipconfig | find /i "IPv4">> Installation.log
-echo. >> Installation.log
-echo CPU Speed: %CPUSpeed% MHz >> Installation.log
-echo Serial Number: %SerialNumber% >> Installation.log
-echo Machine: %computer_model% >> Installation.log
-echo. >> Installation.log
-echo ================================================ >> Installation.log
-echo DATA END >> Installation.log
-echo ================================================ >> Installation.log
-setlocal enabledelayedexpansion
 
-echo We Are Setting Up Your Account...
-
-set "dots="
-for /l %%i in (1,1,20) do (
-    set "dots=!dots!."
-    cls
-    echo We Are Setting Up Your Account!dots!
-    timeout /nobreak /t 1 >nul
-)
-endlocal
+:: Append installation info to log file
+(
+    echo ====================================================
+    echo Installed on %time%   %DATE%
+    echo.
+    echo Registered To: %FirstName% %LastName%
+    echo USERNAME:
+    echo %username%
+    echo.
+    echo TIMEZONE:
+    echo %timezone%
+    echo.
+    echo IP ADDRESS:
+    ipconfig | find /i "IPv4"
+    echo.
+    echo CPU Speed: %CPUSpeed% MHz
+    echo Serial Number: %SerialNumber%
+    echo Machine: %computer_model%
+    echo.
+    echo ====================================================
+    echo DATA END
+    echo ====================================================
+) >> Installation.log
+timeout /t 5 /nobreak >nul
 cls
-echo Welcome %username%
+echo ====================================================
+echo            Welcome %username%!
+echo ====================================================
 pause
+:PICKCOLORFORSETUP
 cls
-goto Breakpoint
+echo.
+echo Pick what color is best for you.
+echo.
+echo 1 - Default
+echo 2 - Green
+echo 3 - Yellow
+echo 4 - White
+echo 5 - Blue
+echo 6 - Gray
+echo 7 - Purple
+echo.
+echo 8 - Finish
+choice /c 12345678 /n /M ">"
+set "option=%errorlevel%"
+if "%option%"=="1" color 07
+if "%option%"=="1" set colr=color 07
+if "%option%"=="2" color 0A
+if "%option%"=="2" set colr=color 0A
+if "%option%"=="3" color 06
+if "%option%"=="3" set colr=color 06
+if "%option%"=="4" color 0F
+if "%option%"=="4" set colr=color 0F
+if "%option%"=="5" color 09
+if "%option%"=="5" set colr=color 09
+if "%option%"=="6" color 87
+if "%option%"=="6" set colr=color 87
+if "%option%"=="7" color 0D
+if "%option%"=="7" set colr=color 0D
+if "%option%"=="8" goto Breakpoint
+echo %colr%>colr.pkg
+goto PICKCOLORFORSETUP
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
@@ -1713,6 +2063,201 @@ goto Crash
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+:ADMINSETUPPAGE
+if "%password%" equ "%admincode%" (
+    set "username=ADMIN"
+    set "password=%Valid_password%"
+    set "adminstat=1"
+) else (
+    echo Critical Sys Error
+    pause
+    EXIT
+    EXIT /b
+)
+goto InputAdmin
+
+:InputAdmin
+if "%adminstat%" neq "1" goto login
+cls
+echo ====================================
+echo            MAIN MENU
+echo ====================================
+echo.
+echo 1. Go to Admin Panel
+echo 2. Go to File Manager
+echo.
+set /p choice="Enter your selection (1 or 2): "
+
+if "%choice%"=="1" goto AdminPanel
+if "%choice%"=="2" goto File_Manager
+goto InputAdmin
+
+:AdminPanel
+if "%adminstat%" neq "1" goto login
+cls
+echo ==================================
+echo         Admin Panel
+echo ==================================
+echo.
+echo 01. Enterprise Security
+echo 02. Enterprise Settings
+echo 03. Enterprise Checklist
+echo 04. Reset Password
+echo 05. Maintenance Mode
+echo 06. Service Manager
+echo 07. 
+echo 08. 
+echo 09. 
+echo 10. 
+echo ==================================
+echo.
+set /p "Inpu=> " 
+if "%password%" neq "%Valid_password%" goto RELOGIN1432
+if %Inpu%==1 goto EntSecurity
+if %Inpu%==2 goto EntSettings
+if %Inpu%==3 goto EntChecklist
+if %Inpu%==4 goto NewPass
+if %Inpu%==5 goto MAINTENANCEMODE
+if %Inpu%==6 goto SvcManager
+if %Inpu%==7 goto 
+if %Inpu%==8 goto 
+if %Inpu%==9 goto 
+if %Inpu%==10 goto 
+goto AdminPanel
+
+:EntChecklist
+cls
+echo ================================
+echo    Enterprise Security Check        
+echo ================================
+echo.
+echo Check Data Leaks          - %DataLeaks%
+echo Check For Updates         - %UpdatePatches%
+echo Check Suspicious Logins   - %AntivirusScan%
+echo.
+echo 1. Return to Main Menu
+echo.
+set /p option="> "
+if "%option%"=="1" goto AdminPanel
+goto EntChecklist
+
+:NewPass
+set "password="
+set "username="
+set /p username="Enter the new username: "
+set /p password="Enter the new password: "
+echo.
+echo Verify Username: [%username%]
+echo Verify Password: [%password%]
+pause
+echo %username%> %mainfilepath%\user.pkg
+echo %password%> %mainfilepath%\pass.pkg
+goto AdminPanel
+
+:EntSettings
+cls
+echo =============================
+echo          SETTINGS
+echo Session: %SESSIONSTARTTIME%
+echo =============================
+echo.
+echo Options
+echo 01. Color
+echo 02. Change BSOD Type
+echo 03. Factory RESET
+echo 04. Update
+echo 05. System Restore
+echo 06. Repair Files
+echo 07. Crash Dump Logs
+echo 08. Back
+echo =============================
+echo.
+choice /c 12345678 /n /M ">"
+set "choice=%errorlevel%"
+if "%choice%"=="1" goto Settings101
+if "%choice%"=="2" goto BSODTYPESETTING
+if "%choice%"=="3" goto FactoryReset132
+if "%choice%"=="4" goto UpdateCheck
+if "%choice%"=="5" goto sysRestore
+if "%choice%"=="6" goto sysRepair
+if "%choice%"=="7" goto Crashdumplogds
+if "%choice%"=="8" goto File3242
+goto File3242
+
+:EntSecurity
+cls
+set "leakDetected=0"
+for %%F in (*.dmp) do (
+    echo Processing file: %%F
+    timeout /t 3 /nobreak >nul
+    echo.
+
+    set "userFound=0"
+    set "passFound=0"
+    set "admnFound=0"
+
+
+
+    findstr /C:"%valid_username%" "%%F" >nul
+    if not errorlevel 1 set "userFound=1"
+
+
+    findstr /C:"%valid_password%" "%%F" >nul
+    if not errorlevel 1 set "passFound=1"
+
+
+    findstr /C:"%admincode%" "%%F" >nul
+    if not errorlevel 1 set "admnFound=1"
+
+
+    if !userFound! equ 1 (
+        echo Username detected in data dump in %%F
+        set "leakDetected=1"
+    )
+    if !passFound! equ 1 (
+        echo Password detected in data dump in %%F
+        set "leakDetected=1"
+    )
+    if !admnFound! equ 1 (
+        echo Admin Password detected in data dump in %%F
+        set "leakDetected=1"
+        set "eleakDetected=1"
+    )
+    echo.
+
+)
+
+timeout /t 2 /nobreak >nul
+cls
+if "%eleakDetected%" == "1" (
+    echo.
+    echo [33mDANGER Your Account Is At Risk.[0m
+    echo.
+    echo [31mThe Admin Password Has Been Found In A Data Breach[0m
+    echo.
+    pause
+    goto AdminPanel
+)
+
+
+if "%leakDetected%" == "1" (
+    echo.
+    echo [33mWARNING Your Info May Have Been Compromised.[0m
+    echo.
+    echo [31mYour data [Usernames Passwords etc.] may have been exposed[0m
+    echo [31mPlease Change Your Password And Username ASAP[0m
+    echo.
+) else (
+    echo.
+    echo No data leaks detected. GREAT JOB!
+    echo.
+)
+pause
+goto AdminPanel
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1836,41 +2381,7 @@ set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
 
-:Safw
-if "%Guest%" equ "1" echo NOT AVAILABLE AS GUEST
-if "%Guest%" equ "1" pause
-if "%Guest%" equ "1" goto File_Manager
-goto Safw1
 
-:Safw1
-set "lastpage=Susp Logins"
-echo %lastpage%>> memory.tmp
-%Colr%
-cls
-echo =============================
-echo      Suspicous Logins 
-echo =============================
-echo If there is nothing here than there are no suspicious logins
-echo.
-type "%mainfilepath%\login_attempts.log"
-if "%password%" neq "%valid_password%" echo %dat% SUSPICIOUS LOGIN
-if "%password%" neq "%valid_password%" echo Password: %valid_password%
-if "%password%" neq "%valid_password%" echo Input Password: %password%
-echo 1. Yes This Was Me
-echo 2. No This Was Not Me
-echo 3. Clear
-echo 4. Exit
-echo =============================
-choice /c 1234 /n /M ">"
-set "choice=%errorlevel%"
-
-if "%choice%"=="1" goto ABORT121
-if "%choice%"=="2" goto password132
-if "%choice%"=="3" goto clear4w52
-if "%choice%"=="4" goto File_Manager
-goto Safw1
-set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
-goto Crash
 
 :FujiDriveTools
 if "%Guest%" equ "1" echo NOT AVAILABLE AS GUEST
@@ -1934,6 +2445,91 @@ goto File_Manager
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+
+
+
+:Antivirus
+if "%FirewallStatus%"=="[31mNOT COMPLETED[0m" (
+    set "FirewallStatus=[32mCOMPLETED[0m"
+)
+cls
+echo ================================
+echo         Security Center       
+echo ================================
+echo.
+echo         Security Check        
+echo.
+echo Scan Device               - %DataLeaks%
+echo Check For Updates         - %UpdatePatches%
+echo Check Suspicious Logins   - %AntivirusScan%
+echo.
+echo ================================
+echo.
+echo 1. Change Credentials
+echo 2. Antivirus Scan
+echo 3. Suspicious Logins
+echo 4. Test Antivirus
+echo 5. Security Updates
+echo 6. Exit
+echo.
+set /p choice="Enter your choice (1-4): "
+
+if "%choice%"=="1" goto password132
+if "%choice%"=="2" goto DATCHECK
+if "%choice%"=="3" goto Safw
+if "%choice%"=="4" (
+    echo. >>%mainfilepath%\AntiVirusSuspTest.cmd
+    echo. >>%mainfilepath%\AntiVirusSuspTest.bat
+    echo. >>%mainfilepath%\AntiVirusSuspTest.exe
+    echo. >>%mainfilepath%\AntiVirusVirusTest.cmd
+    echo. >>%mainfilepath%\AntiVirusVirusTest.bat
+    echo. >>%mainfilepath%\AntiVirusVirusTest.exe
+)
+if "%choice%"=="5" goto File_Manager
+if "%choice%"=="6" goto File_Manager
+
+goto Antivirus
+
+:Safw
+if "%Guest%" equ "1" echo NOT AVAILABLE AS GUEST
+if "%Guest%" equ "1" pause
+if "%Guest%" equ "1" goto File_Manager
+goto Safw1
+
+:Safw1
+set "lastpage=Susp Logins"
+echo %lastpage%>> memory.tmp
+if "%AntivirusScan%"=="[31mNOT COMPLETED[0m" (
+    set "AntivirusScan=[32mCOMPLETED[0m"
+)
+%Colr%
+cls
+echo =============================
+echo      Suspicous Logins 
+echo =============================
+echo If there is nothing here than there are no suspicious logins
+echo.
+type "%mainfilepath%\login_attempts.log"
+echo.
+if "%password%" neq "%valid_password%" echo %dat% SUSPICIOUS LOGIN
+if "%password%" neq "%valid_password%" echo Password: %valid_password%
+if "%password%" neq "%valid_password%" echo Input Password: %password%
+echo 1. Yes This Was Me / Clear
+echo 2. No This Was Not Me / Change Password
+echo 3. Exit
+echo =============================
+choice /c 1234 /n /M ">"
+set "choice=%errorlevel%"
+
+if "%choice%"=="1" goto clear4w52
+if "%choice%"=="2" goto password132
+if "%choice%"=="3" goto Antivirus
+goto Safw1
+
 :clear4w52
 set "lastpage=Clear Login Attempts"
 echo %lastpage%>> memory.tmp
@@ -1941,8 +2537,6 @@ del %mainfilepath%\login_attempts.log
 echo CLEARED
 pause
 goto Safw1
-set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
-goto Crash
 
 :password132
 if "%Guest%" equ "1" echo NOT AVAILABLE AS GUEST
@@ -1977,17 +2571,195 @@ if "%password%"=="" (
 
 echo %username%> %mainfilepath%\user.pkg
 echo %password%> %mainfilepath%\pass.pkg
+:GENERATEAUK2
+echo.
+echo Generating Universal Access Key . . .
+timeout /nobreak /t 5 >nul
+set "alphabet=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+set "UAK="
+for /l %%i in (1,1,10) do (
+    set /a idx=!random! %% 26
+    call set "letter=%%alphabet:~!idx!,1%%"
+    set "UAK=!UAK!!letter!"
+)
+echo !UAK!> "%mainfilepath%\UAK.pkg"
+if not exist %mainfilepath%\UAK.pkg goto GENERATEAUK2
 
 pause
-goto file3242
+goto Antivirus
 
-:Antivirus
-set "lastpage=Antivirus"
-echo %lastpage%>> memory.tmp
+
+
+:DATCHECK
+set "virusnmbr=0"
+
+if "%DataLeaks%"=="[31mNOT COMPLETED[0m" (
+    set "DataLeaks=[32mCOMPLETED[0m"
+)
 cls
-call Antivirus.bat
+echo Starting Virus Detection . . .
+timeout /t 1 /nobreak >nul
 
-goto File_Manager
+set "quarantinepath=%mainfilepath%\quarantine"
+if not exist "%quarantinepath%" mkdir "%quarantinepath%"
+
+if exist viruslist.txt (
+    set /p filelist=<viruslist.txt
+) else (
+    set "filelist=virus.exe malware.bat trojan.dll suspicious.docx AntiVirusSuspTest.cmd AntiVirusSuspTest.bat AntiVirusSuspTest.exe"
+    set "defaultvrslst=1"
+)
+
+if %defaultvrslst% == 1 (
+    echo.
+    echo [33mCAUTION:[0m Virus List File Not Found. Default Virus List Loaded.
+    echo.
+)
+echo Scanning folder: %mainfilepath% 
+
+echo. 
+
+:: Loop through file list
+for %%F in (%filelist%) do (
+    echo Checking For %%F.
+    if exist "%mainfilepath%\%%F" (
+        set /a virusnmbr+=1
+        echo [33mALERT:[0m [31mFound Virus - %%F [0m
+        move /Y "%mainfilepath%\%%F" "%quarantinepath%\%%F" >nul
+        set "quarantinestatus=%errorlevel%"
+        if %quarantinestatus% neq 0 echo [33mERROR:[0m [34mVIRUS MAY HAVE NOT BEEN QUARENTINED[0m
+    )
+)
+echo.
+echo Scan complete, Found %virusnmbr% Viruses.
+Pause
+cls
+echo Starting Suspicious File Detection . . .
+timeout /t 1 /nobreak >nul
+echo Scanning folder: %mainfilepath% 
+echo. 
+
+:: Scan for suspicious files
+for %%F in (%mainfilepath%\*.exe %mainfilepath%\*.bat %mainfilepath%\*.cmd) do (
+    echo [33mALERT:[0m [31mSuspicious file detected - %%~nxF[0m
+    :: Prompt user for action
+    choice /C QI /M "Quarantine (Q) or Ignore (I) %%~nxF?"
+    if errorlevel 2 (
+        echo Ignored: %%~nxF
+    ) else (
+        move /Y "%%F" "%quarantinepath%\%%~nxF" >nul
+        set "quarantinestatus=%errorlevel%"
+        if %quarantinestatus% neq 0 echo [33mERROR:[0m [34mFILE MAY HAVE NOT BEEN QUARENTINED[0m
+    )
+)
+echo.
+echo Scan complete.
+pause
+cls
+
+echo Starting Data Leak Detection . . .
+timeout /t 1 /nobreak >nul
+
+set "regvarnumber=Registration Number [32mNOT DETECTED[0m"
+set "Uservarname=Username [32mNOT DETECTED[0m"
+set "Passvarword=Password [32mNOT DETECTED[0m"
+set "UAvarK=Universal Access Key [32mNOT DETECTED[0m"
+
+if "%valid_username%"=="" (
+    echo Error: valid_username variable is not set.
+    exit /b 1
+)
+if "%valid_password%"=="" (
+    echo Error: valid_password variable is not set.
+    exit /b 1
+)
+
+
+set "leakDetected=0"
+for %%F in (*.dmp) do (
+    echo Analyzing file: %%F
+    timeout /t 3 /nobreak >nul
+    echo.
+
+    set "userFound=0"
+    set "passFound=0"
+    set "regnumberFound=0"
+    set "UAKFound=0"
+
+    findstr /C:"%valid_username%" "%%F" >nul
+    if not errorlevel 1 set "userFound=1"
+
+    findstr /C:"%valid_password%" "%%F" >nul
+    if not errorlevel 1 set "passFound=1"
+
+    findstr /C:"%regnumber%" "%%F" >nul
+    if not errorlevel 1 set "regnumberFound=1"
+
+    findstr /C:"%UAK%" "%%F" >nul
+    if not errorlevel 1 set "UAKFound=1"
+
+
+
+    if !regnumberFound! equ 1 (
+        echo Registration Number detected in data dump in %%F
+        set "regvarnumber=Regnumbr [31mDETECTED[0m"
+        set "leakDetected=1"
+    )
+    if !userFound! equ 1 (
+        echo Username Credentials detected in data dump in %%F
+        set "Uservarname=Username [31mDETECTED[0m"
+        set "leakDetected=1"
+    )
+    if !passFound! equ 1 (
+        echo Password Credentials detected in data dump in %%F
+        set "Passvarword=Password [31mDETECTED[0m"
+        set "leakDetected=1"
+    )
+    if !UAKFound! equ 1 (
+        echo Universal Access Key detected in data dump in %%F
+        set "UAvarK=Universal Access Key [31mDETECTED[0m"
+        set "leakDetected=1"
+        set "leak2Detected=1"
+    )
+    echo.
+
+
+)
+
+if "%password%"=="%UAK%" goto GrantedACC
+
+
+timeout /t 2 /nobreak >nul
+cls
+if "%leakDetected%" == "1" (
+    echo.
+    echo [33mWARNING Your Account May Be At Risk.[0m
+    echo.
+    echo [33mYour data [Usernames Passwords etc.] may have been exposed[0m
+    echo [33mPlease Change Your Password And Username ASAP[0m
+    if %leak2Detected% == 1 echo.
+    if %leak2Detected% == 1 echo [31mDANGER:[0m [34mUniveral Access Key Has Been Leaked, Secure Account Immediately.[0m
+    if %leak2Detected% == 1 echo [34mThe Univeral Access Key Can Give The Attacker Full Access To Your Account.[0m
+    echo.
+    echo ==============================================
+    echo.
+    echo %regvarnumber% In Data Leak
+    echo %Uservarname% In Data Leak
+    echo %Passvarword% In Data Leak
+    echo %UAvarK% In Data Leak
+    echo.
+    echo ==============================================
+    echo.
+) else (
+    echo.
+    echo No data leaks detected. GREAT JOB!
+    echo.
+)
+pause
+goto Antivirus
+
+
 
 :ABORT121
 set "lastpage=Abort Shutdown"
