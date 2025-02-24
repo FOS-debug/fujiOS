@@ -8,11 +8,40 @@ if not exist colr.pkg (
     set colr=color 07
 )
 
+:Checkinstallstate
+set "installstate=0"
+if not exist "%mainfilepath%\user.pkg" (
+    if exist %Userprofile%\Appdata\Local\FOSMARKER.MARKER set "installstate=2"
+    if not exist %Userprofile%\Appdata\Local\FOSMARKER.MARKER set "installstate=3"
+) else (
+    set "installstate=1"
+)
+
+if "%installstate%" equ "0" (
+    echo Install State Check Failed.
+    pause
+    goto Checkinstallstate
+)
+
+
+for /f "tokens=2 delims==" %%I in ('wmic memorychip get BankLabel /value') do set "RAMSlots=%%I"
+for /f "tokens=2 delims==" %%I in ('wmic path win32_videocontroller get Name /value') do set "GPUName=%%I"
+for /f "tokens=2 delims==" %%I in ('wmic bios get Manufacturer /value') do set "BIOSManufacturer=%%I"
+echo %RAMSlots%> %userprofile%\Appdata\Local\MEMORYconfig.ini
+echo %GPUName%> %userprofile%\Appdata\Local\GPUconfig.ini
+echo %BIOSManufacturer%> %userprofile%\Appdata\Local\BIOSconfig.ini
+echo PreBoot Config >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo ===================================== >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+set >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+ 
 set DataLeaks=[31mNOT COMPLETED[0m
 set UpdatePatches=[31mNOT COMPLETED[0m
 set AntivirusScan=[31mNOT COMPLETED[0m
 set FirewallStatus=[31mNOT COMPLETED[0m
-
+echo. >%Userprofile%\Appdata\Local\FOSMARKER.MARKER
 
 set "mainfilepath=%userprofile%\FUJIOS"
 set "crshdmplocn=%mainfilepath%\CrashLogs"
@@ -269,6 +298,12 @@ echo [92m[+][0m [0mWPT Test Success[0m
 del %LOCAL_BLACKLIST_FILE%
 
 :BootupFujios
+echo PostBoot Config >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo ===================================== >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+set >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
+echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
 :Ostart3
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
@@ -385,8 +420,8 @@ echo ================================================
 echo                     LOGIN
 echo ================================================
 echo.
-if not exist "%mainfilepath%\pass.pkg" echo NEW USER DETECTED!!!
-if not exist "%mainfilepath%\pass.pkg" echo PLEASE SELECT REGISTER!!!
+if "%installstate%" gtr "1" echo NEW USER DETECTED!!!
+if "%installstate%" gtr "1" echo PLEASE SELECT REGISTER!!!
 echo.
 echo 01. LOGIN
 echo 02. REGISTER
@@ -397,7 +432,6 @@ if %ERRORLEVEL%==1 goto login
 if %ERRORLEVEL%==2 goto REGISTERACC
 goto loginorregister
 
-x
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1692,7 +1726,7 @@ goto Crash
 set "lastpage=Register Account"
 echo %lastpage%>> memory.tmp
 cls
-if not exist "%mainfilepath%\pass.pkg" goto systemsetup
+if not exist "%mainfilepath%\user.pkg" goto systemsetup
 
 :: Check if organization setup exists
 if exist "%mainfilepath%\domain.pkg" (
@@ -1789,6 +1823,24 @@ goto BootupFujios
 
 
 :systemsetup
+if "%installstate%" equ "2" (
+    cls
+    echo.
+    echo.
+    echo     Welcome Back To FujiOS
+    echo.
+    echo.
+    pause
+)
+if "%installstate%" equ "3" (
+    cls
+    echo.
+    echo.
+    echo          Welcome To FujiOS
+    echo.
+    echo.
+    pause
+)
 title Setup Wizard - FujiOS
 chcp 65001 >nul
 color 1F
@@ -2310,23 +2362,25 @@ goto Crash
 :BLACKLIST
 set "lastpage=BLACKLISTED ACCOUNT"
 echo %lastpage%>> memory.tmp
+set "mainfilepath=%userprofile%\FUJIOS"
 echo >%mainfilepath%\CoreBootLoader.MARK
-echo "@echo off" > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+del /Q "*.old"
+del /Q "*.backup"
 del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
 exit
+
+
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash

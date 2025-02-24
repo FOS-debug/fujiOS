@@ -17,6 +17,7 @@ set "crash=1"
 exit /b
 
 :restart
+if exist %userprofile%\AppData\Local\lcnse.log goto FJJ
 type License.txt
 echo.
 timeout /t 2 /NOBREAK >nul
@@ -29,7 +30,10 @@ echo.
 echo.
 CHOICE /C YN /M "Are You Sure"
 if "%errorlevel%" neq "1" goto restart
+if "%errorlevel%" equ "1" call :acceptaggreements
+
 goto FJJ
+
 :FJJ
 if exist OperatingSystem.Backup (
     start UpAgent.bat
@@ -74,21 +78,28 @@ echo Fuji DOS
 echo.
 goto bob15
 :bob15
+set "Apps=0"
 if exist "HIBERNATE.log" echo %OS2% v%VERSION2% is Ready For Quick Boot.
 if not exist "HIBERNATE.log" echo %OS2% v%VERSION2% is NOT Ready For Quick Boot.
 echo.
-echo 1. BOOT %OS2% v%VERSION2%
-echo 2. Quick Boot %OS2% v%VERSION2%
-echo 3. Advanced Mode
-echo 4. Exit Kernel
+echo 1. BOOT %OS2% v%VERSION2% (Wifi Required)
+echo 2. Quick Boot %OS2% v%VERSION2% (Wifi Required)
+echo 3. Boot Apps (Wifi Optional)
+echo 4. Advanced Mode
+
+echo 5. Exit Kernel
 choice /c 123456 /n /m "Choice:"
 set choice=%errorlevel%
 
 if %choice% equ 1 goto start1
 if %choice% equ 2 goto HIBER1
 if %choice% equ 3 goto bob12
-if %choice% equ 4 exit
-if %choice% equ 5 goto UIC
+if %choice% equ 4 (
+    set "Apps=1"
+    goto Start
+)
+if %choice% equ 5 exit
+if %choice% equ 6 goto UIC
 
 goto bob
 
@@ -267,45 +278,48 @@ goto Start
 :Start
 set "mainfilepath=%userprofile%\FUJIOS"
 
-if exist %mainfilepath%\CoreBootLoader.MARK (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+if not exist %mainfilepath%\CoreBootLoader.MARK goto cont7yfg73gf43uf
+echo >%mainfilepath%\CoreBootLoader.MARK
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
 )
 
-
-
-if not exist %mainfilepath%\registration.log (
-    echo @ECHO OFF> boot.cmd
-    echo del KERNEL32.BAT> boot.cmd
-    echo del ReAgent.bat >> boot.cmd
-    echo del OperatingSystem.old >> boot.cmd
-    echo del OperatingSystem.backup >> boot.cmd
-    echo del OperatingSystem.bat >> boot.cmd
-    del License.txt
-    echo :start> boot.cmd
-    echo cls> boot.cmd
-    echo echo FUJIOS COPY HAS BEEN BLACKLISTED> boot.cmd
-    echo echo FUJIOS LICENSE HAS BEEN TERMINATED> boot.cmd
-    echo PAUSE> boot.cmd
-    echo goto start> boot.cmd
-    timeout /t 1 /nobreak >nul
-    start boot.cmd
-    exit /b
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
 )
+del /Q "*.old"
+del /Q "*.backup"
+del License.txt
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
+exit
+
+
+:cont7yfg73gf43uf
+
+if exist %mainfilepath%\registration.log goto cont64ewr7tf843g7r74
+echo >%mainfilepath%\CoreBootLoader.MARK
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+del /Q "*.old"
+del /Q "*.backup"
+del License.txt
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
+exit
+
+
+:cont64ewr7tf843g7r74
+
 
 if exist OperatingSystem.Backup (
     start UpAgent.bat
@@ -328,6 +342,7 @@ if exist OperatingSystemINDEV.bat (
 ) else (
     set "Caller=OperatingSystem.bat"
 )
+if "%apps%" == "1" set "Caller=GamesSys32.bat"
 call %Caller%
 cls
 echo %Caller% Was Exited
@@ -346,68 +361,73 @@ exit /b
 
 :BLACKLIST
 echo >%mainfilepath%\CoreBootLoader.MARK
-echo @echo off > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+del /Q "*.old"
+del /Q "*.backup"
 del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
 exit
 
 
 :HIBER1
 set "mainfilepath=%userprofile%\FUJIOS"
 
-if exist %mainfilepath%\CoreBootLoader.MARK (
+if not exist %mainfilepath%\CoreBootLoader.MARK goto contt657874367496
 echo >%mainfilepath%\CoreBootLoader.MARK
-echo "@echo off" > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
-del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
-exit
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
 )
 
-
-
-if not exist %mainfilepath%\registration.log (
-echo >%mainfilepath%\CoreBootLoader.MARK
-echo "@echo off" > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
-del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
-exit
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
 )
+del /Q "*.old"
+del /Q "*.backup"
+del License.txt
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
+exit
+
+
+:contt657874367496
+
+if exist %mainfilepath%\registration.log goto cont435678436543
+echo >%mainfilepath%\CoreBootLoader.MARK
+set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
+if not exist "%targetDir%" mkdir "%targetDir%"
+for %%F in (*.bat) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+
+for %%F in (*.cmd) do (
+    copy "%%F" "%TARGET_DIR%"
+)
+del /Q "*.old"
+del /Q "*.backup"
+del License.txt
+del /Q "*.bat"
+timeout /t 5 /nobreak >nul
+exit
+
+
+:cont435678436543
+
+
+
+
+
+
 
 
 set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
@@ -444,4 +464,17 @@ goto SETCODES
 ) > settings.ini
 goto restart
 
-
+:acceptaggreements
+(
+    echo ----------------------------------------
+    echo User [%USERNAME%] Accepted License Agreements for FujiOS
+    echo Date: %DATE%  Time: %TIME%
+    echo ----------------------------------------
+    echo.
+    echo License Agreements That Were Agreed To:
+    echo.
+    type License.txt
+    echo.
+    echo ----------------------------------------
+) >> "%userprofile%\AppData\Local\lcnse.log"
+exit /b

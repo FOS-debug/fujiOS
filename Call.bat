@@ -1,7 +1,9 @@
 
 @echo off
+cls
 setlocal enabledelayedexpansion
-
+echo Booting Integrated Development Environment . . .
+timeout /t 5 /nobreak >nul
 :: Initialize IDE Directory
 :RESTART
 set "Appfolder=%USERPROFILE%\IDEApplications"

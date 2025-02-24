@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 set "repair=0"
 set "restore=0"
 set "reset=0"
@@ -60,63 +61,266 @@ goto ERROR1
 
 
 :FACTORYRESET
+color 1F
+set CLEANDRIVE=0
 cls
-echo WARNING: This action will permanently delete the current OS and install a new one.  
-echo All data on the existing system may be lost.  
+REM *****************************************************
+REM Batch Script: Remove/Keep Files and Reinstall Options
+REM Description:
+REM   1. Moves registration.log from %userprofile%\FUJIOS to a temporary folder.
+REM   2. Prompts you whether to remove files or keep them.
+REM      - If you choose “remove”, it deletes the specified files/folders.
+REM      - If you choose “keep”, it skips deletions (only the reinstall is done).
+REM   3. Prompts for reinstall method:
+REM         • Local reinstall: Moves OperatingSystem.bat to temp then later restores it.
+REM         • Cloud download: Deletes OperatingSystem.bat then downloads a fresh copy.
+REM   4. At the end, if %userprofile%\FUJIOS was removed, it is re-created and registration.log is moved back.
+REM *****************************************************
+cls
+echo -------------------------------------------------
+echo                 Reset FujiOS
+echo -------------------------------------------------
 echo.
-echo To cancel, close this window now.  
+echo   Choose one of the following options:
 echo.
-timeout /t 5 /nobreak >nul
-pause
+echo         [K]  Keep my files
+echo              (Your personal files will be kept,
+echo               but apps and settings will be removed.)
+echo.
+echo         [R]  Remove everything
+echo              (All files, apps, and settings will be
+echo               removed for a fresh start.)
+echo.
+choice /C KR /M "Select an option: "
+if %errorlevel%==1 (
+    set RESET_TYPE=KEEP
+    set APPRMVTYPE=KEEP
+)
+if %errorlevel%==2 (
+    set RESET_TYPE=REMOVE
+    set APPRMVTYPE=REMOVE
+)
+
+
+cls
+echo -------------------------------------------------
+echo                 Reset FujiOS
+echo -------------------------------------------------
+echo.
+echo   Select the installation method:
+echo.
+echo         [L]  Local reinstall
+echo              (Reinstall FujiOS using existing files
+echo               on this PC. Faster if the system image is healthy.)
+echo.
+echo         [C]  Cloud download
+echo              (Download a fresh copy of FujiOS from the cloud.
+echo               Recommended if local files are corrupted.)
+echo.
+choice /C LC /M "Select an option: "
+if %errorlevel%==1 (
+    set REINSTALL_TYPE=LOCAL
+) else (
+    set REINSTALL_TYPE=CLOUD
+)
+if %RESET_TYPE%==REMOVE (
+    if %APPRMVTYPE%==REMOVE goto Clearcacheconfirm
+)
+:isthisinfocorrect
+cls
+echo -------------------------------------------------
+echo               Confirm Your Settings
+echo -------------------------------------------------
+echo.
+echo   Please review your reset options:
+echo.
+echo         %RESET_TYPE% Files
+echo         %APPRMVTYPE% Applications
+echo         %REINSTALL_TYPE% Installation
+echo.
+echo   Resetting will:
+echo     • Change settings back to defaults.
+if "%RESET_TYPE%"=="REMOVE" echo     • Remove personal files and user accounts.
+if "%RESET_TYPE%"=="KEEP" echo     • Keep personal files.
+if "%REINSTALL_TYPE%"=="LOCAL" echo     • Reinstall FujiOS from this device.
+if "%REINSTALL_TYPE%"=="CLOUD" echo     • Download and reinstall FujiOS.
+if "%APPRMVTYPE%"=="REMOVE" echo     • Remove all apps and programs.
+if "%APPRMVTYPE%"=="KEEP" echo     • Keep all apps and programs.
+if "%CLEANDRIVE%"=="1" echo     • Clear FujiOS cache.
+echo.
+echo   Note:
+if "%REINSTALL_TYPE%"=="CLOUD" echo     Cloud download may use more than 2.25 GB of data.
+if "%CLEANDRIVE%"=="1" echo     Clearing cache can take a while.
+echo.
+echo         [C]  CANCEL   - Abort the reset process.
+echo         [R]  RESET    - Proceed with the reset.
+echo.
+choice /C CR /M "Select an option: "
+if %errorlevel%==1 goto :EOF
 timeout /t 5 /nobreak >nul
 cls
 echo =========================================
-echo      FACTORY RESET IN PROGRESS...
+echo         RESET IN PROGRESS...
 echo      DO NOT CLOSE THIS WINDOW
 echo =========================================
 ping localhost -n 3 >nul
+title DO NOT CLOSE THIS WINDOW
 timeout /t 5 /nobreak >nul
-del %mainfilepath%\pass.pkg
-del %mainfilepath%\user.pkg
-del settings.ini
-del settings2.ini
-set "lastpage=FactoryReset1334"
-del %mainfilepath%\FACTORYRESETNXT.log
-del %mainfilepath%\pass.pkg
-del %mainfilepath%\user.pkg
-del settings.ini
-del %mainfilepath%\BOOTSEC.sys
-del %mainfilepath%\BOOTSEC2
-del settings2.ini
-del %mainfilepath%\kencr
-ping localhost -n 3 >nul
-del %mainfilepath%\antivirus_log.txt
-del %mainfilepath%\BOOTSEC.sys
-del %mainfilepath%\login_attempts.log
-del %mainfilepath%\BOOTSEC2
-del %mainfilepath%\BURGER.dll
-del %mainfilepath%\stolen_report.txt
-del %mainfilepath%\reportedstolen.log
-del %mainfilepath%\Bootlog.log
-del %%mainfilepath%\kencr
-del %mainfilepath%\Bootlog.log
-del %mainfilepath%\WindowsBootLog.dll
-del %mainfilepath%\pass.pkg
-del %mainfilepath%\user.pkg
-del %mainfilepath%\time.pkg
-del %mainfilepath%\BootTime1
-del %mainfilepath%\BootTime2
-del memory.tmp
-if exist %mainfilepath%\org.pkg del %mainfilepath%\org.pkg
-if exist %mainfilepath%\domain.pkg del %mainfilepath%\domain.pkg
-rmdir %mainfilepath%\CrashLogs
-rmdir %userprofile%\BatchGameIDE
-rmdir %userprofile%\USERdocuments
-rmdir %mainfilepath%
+
+if not exist "%userprofile%\AppData\Roaming\factoryresettemp" (
+    mkdir "%userprofile%\AppData\Roaming\factoryresettemp"
+)
+
+
+if exist "%userprofile%\FUJIOS\registration.log" (
+    move /Y "%userprofile%\FUJIOS\registration.log" "%userprofile%\AppData\Roaming\factoryresettemp\" >nul
+)
+
+if exist "Store_Settings.ini" del /F /Q "Store_Settings.ini" >nul
+if exist "colr.pkg" del /F /Q "colr.pkg" >nul
+if exist "settings.ini" del /F /Q "settings.ini" >nul
+if exist "memory.tmp" del /F /Q "memory.tmp" >nul
+if exist "manifest.txt" del /F /Q "manifest.txt" >nul
+
+if exist "%userprofile%\Documents\bsodtype.pkg" del /F /Q "%userprofile%\Documents\bsodtype.pkg" >nul
+
+if %RESET_TYPE%==REMOVE (
+    goto DO_DELETIONS
+)
+if %RESET_TYPE%==KEEP (
+    goto SKIP_DELETIONS
+)
+
+
+:DO_DELETIONS
+if exist "%userprofile%\FUJIOS" (
+    attrib -R "%userprofile%\FUJIOS" /S /D
+    rmdir /S /Q "%userprofile%\FUJIOS" >nul
+)
+timeout /t 5 /nobreak >nul
+
+if exist "Installation.log" del /F /Q "Installation.log" >nul
+if exist "Bootlog.log" del /F /Q "Bootlog.log" >nul
+timeout /t 5 /nobreak >nul
+
+if exist "%userprofile%\AppData\Bootlog.log" del /F /Q "%userprofile%\AppData\Bootlog.log" >nul
+if exist "%userprofile%\AppData\kencr" del /F /Q "%userprofile%\AppData\kencr" >nul
+
+timeout /t 5 /nobreak >nul
+x
+if exist "%userprofile%\Documents\BOOTSEC.sys" del /F /Q "%userprofile%\Documents\BOOTSEC.sys" >nul
+if exist "%userprofile%\Documents\BootTime1" del /F /Q "%userprofile%\Documents\BootTime1" >nul
+if exist "%userprofile%\Documents\BootTime2" del /F /Q "%userprofile%\Documents\BootTime2" >nul
+timeout /t 5 /nobreak >nul
+
+if %APPRMVTYPE%==1 (
+    if exist "%userprofile%\Applications" (
+        rmdir /S /Q "%userprofile%\Applications" >nul
+    ) else (
+        echo Applications folder not found.
+    )
+) 
+
+if %CLEANDRIVE%==1 (
+    if exist "%userprofile%\AppData\Local\lcnse.log" del /F /Q "%userprofile%\AppData\Local\lcnse.log" >nul
+    if exist "%userprofile%\Appdata\Local\cachedinfo.ini" del /F /Q "%userprofile%\Appdata\Local\cachedinfo.ini" >nul
+    if exist "%userprofile%\Appdata\Local\BIOSconfig.ini" del /F /Q "%userprofile%\Appdata\Local\BIOSconfig.ini" >nul
+    if exist "%userprofile%\Appdata\Local\MEMORYconfig.ini" del /F /Q "%userprofile%\Appdata\Local\MEMORYconfig.ini" >nul
+    if exist "%userprofile%\Appdata\Local\GPUconfig.ini" del /F /Q "%userprofile%\Appdata\Local\GPUconfig.ini" >nul
+)
+
+goto AFTER_DELETIONS
+
+:SKIP_DELETIONS
+:AFTER_DELETIONS
+
+echo.
+
+timeout /t 5 /nobreak >nul
+if "%REINSTALL_TYPE%"=="LOCAL" (
+    REM For local reinstall, move OperatingSystem.bat to the temp folder
+    if not exist "%userprofile%\AppData\Roaming\factoryresettemp" (
+        mkdir "%userprofile%\AppData\Roaming\factoryresettemp" >nul
+    )
+    if exist "OperatingSystem.bat" (
+        move /Y "OperatingSystem.bat" "%userprofile%\AppData\Roaming\factoryresettemp\" >nul
+    ) else (
+        echo OperatingSystem.bat not found in current directory.
+        pause
+    )
+) else (
+    REM For cloud download, delete OperatingSystem.bat if it exists
+    if exist "OperatingSystem.bat" (
+        del /F /Q "OperatingSystem.bat" >nul
+    )
+)
+
+echo.
+REM If %userprofile%\FUJIOS does not exist (i.e. it was deleted), re-create it.
+if not exist "%userprofile%\FUJIOS" (
+    mkdir "%userprofile%\FUJIOS" >nul
+)
+
+REM Move registration.log back to %userprofile%\FUJIOS if it exists in the temp folder.
+if exist "%userprofile%\AppData\Roaming\factoryresettemp\registration.log" (
+    move /Y "%userprofile%\AppData\Roaming\factoryresettemp\registration.log" "%userprofile%\FUJIOS\" >nul
+)
+timeout /t 5 /nobreak >nul
+
+REM --- Reinstall actions based on method ---
+if "%REINSTALL_TYPE%"=="LOCAL" (
+    if exist "%userprofile%\AppData\Roaming\factoryresettemp\OperatingSystem.bat" (
+        move /Y "%userprofile%\AppData\Roaming\factoryresettemp\OperatingSystem.bat" "." >nul
+    )
+    rmdir /S /Q "%userprofile%\AppData\Roaming\factoryresettemp" >nul
+) else (
+    set SERVER_URL=https://fos-debug.github.io/fujiOS
+    set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
+    set UPDATE_FILE=OperatingSystem.bat
+    set UPDATER_FILE=UpAgent.bat
+    set BACKUP_FILE=OperatingSystem.Backup
+    set OLD_FILE=OperatingSystem.OLD
+    set OLD_VERSION=Version.OLD
+    set VERSION_FILE=Version.txt
+    set /p CURRENT_VERSION=<Version.txt
+    curl -s -o %UPDATE_FILE% %SERVER_URL%/%UPDATE_FILE%
+    curl -s -o Version.txt %SERVER_URL%/%VERSION_FILE%
+    echo Cloud download completed.
+)
+timeout /t 5 /nobreak >nul
+
+echo.
+echo Factory Reset Complete
+echo.
+pause
+
 timeout /t 5 /nobreak >nul
 exit /b
 exit
 
+:Clearcacheconfirm
+cls
+echo -------------------------------------------------
+echo                 Reset FujiOS
+echo -------------------------------------------------
+echo.
+echo   Do you want to clear the FujiOS Cache?
+echo.
+echo         [C]  Clear Cache
+echo              (Removes system cache.
+echo               Use if you are recycling your PC.)
+echo.
+echo         [D]  Don't Clear Cache
+echo              (Keeps the cache intact.
+echo               Use if you plan to continue using your PC.)
+echo.
+choice /C CD /M "Select an option: "
+if %errorlevel%==1 (
+    set CLEANDRIVE=1
+) else (
+    set CLEANDRIVE=0
+)
+goto isthisinfocorrect
 
 :SYSTEMRESTORE
 set OLD_VERSION=Version.OLD
