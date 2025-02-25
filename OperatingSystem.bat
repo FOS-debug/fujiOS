@@ -1,7 +1,29 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
-setlocal enabledelayedexpansion
 :PREBootupFujios
+
+if not defined BIOS.ram (
+                echo Error loading RAM. 
+                echo For FOS developers, make sure your bootloader meets the requirements.
+                pause >nul
+                exit
+                )
+
+if not defined BIOS.version (
+                echo Error loading BIOS version. 
+                echo For FOS developers, make sure your bootloader meets the requirements.
+                pause >nul
+                exit
+                )
+
+if %BIOS.SETUP% NEQ exit (
+                echo ^^!BIOS^^! is corrupted. 
+                echo For FOS developers, make sure your bootloader meets the requirements.
+                pause >nul
+                exit
+                )
+
+
 set /p colr=< colr.pkg
 
 if not exist colr.pkg (
@@ -171,19 +193,48 @@ if "!blacklist! "=="!regnumber! " (
 )
 exit /b
 :CONTINUENOT
+if exist RAM.ini (
+    echo ERROR: RAM NOT UNMOUNTED IN PREVIOUS SESSION.
+    pause
+    cls
+)
+echo Mounting Virtual Ram Disc . . .
+(
+  echo 0
+  echo 0
+  echo 0
+  echo 0
+  echo 0
+  echo 0
+  echo 0
+  echo 
+  echo 
+) > RAM.ini
+
+timeout /t 5 /nobreak >nul
+
 if exist UpAgent.cmd goto FINISHUPDATING
 
 if not exist "%crshdmplocn%" mkdir "%crshdmplocn%"
-set "hibernate=0"
-set "RESTARTATTEMPTS=0"
-set "ErrorL2=0"
+
+< RAM.ini (
+  set /p hibernate=
+  set /p RESTARTATTEMPTS=
+  set /p ErrorL2=
+  set /p organizationstatus=
+  set /p Enterprise=
+  set /p Activationstat=
+  set /p Repair=
+  set /p username=
+  set /p password=
+)
+
 set "SESSIONSTARTTIME=%date%   %TIME%"
 set "DefaultDomain=ptie.org"
 set "DefaultOrg=PTI ENTERPRISE"
 if not exist %mainfilepath%\domain.pkg (
    set "domain=%DefaultDomain%"
    set "organisation=%DefaultOrg%"
-   set "organizationstatus=0"
 ) else (
    set /p organisation=<%mainfilepath%\org.pkg
    set /p domain=<%mainfilepath%\domain.pkg
@@ -196,9 +247,7 @@ if exist %mainfilepath%\svr.pkg (
     set /p SERVERNUM=<%mainfilepath%\svr.pkg
     set "Enterprise=1"
     set /p admincode=<%mainfilepath%\adminCDE.pkg
-) else (
-    set "Enterprise=0"
-)
+) 
 
 if not exist %mainfilepath%\act.pkg (
     set "Activationstat=0"
@@ -211,6 +260,18 @@ if "%Activationstat%" neq "1" (
     set "Activationstat=0"
     echo %Activationstat% >%mainfilepath%\act.pkg
 )
+
+ (
+  echo %hibernate%
+  echo %RESTARTATTEMPTS%
+  echo %ErrorL2%
+  echo %organizationstatus%
+  echo %Enterprise%
+  echo %Activationstat%
+  echo %Repair%
+  echo %username%
+  echo %password%
+) > RAM.ini
 
 if not exist %mainfilepath%\user.pkg goto VariableErrorCheck
 set /p valid_username=<%mainfilepath%\user.pkg
@@ -387,7 +448,6 @@ start boot.cmd
 exit
 )
 :OSSST
-set "Repair=0"
 if exist rundiagnostic.MARKER call :FULL_DIAGNOSTIC
 if %Repair%==1 goto startuprepair
 
@@ -485,6 +545,18 @@ goto Crash
 
 
 :login
+ (
+  echo %hibernate%
+  echo %RESTARTATTEMPTS%
+  echo %ErrorL2%
+  echo %organizationstatus%
+  echo %Enterprise%
+  echo %Activationstat%
+  echo %Repair%
+  echo %username%
+  echo %password%
+) > RAM.ini
+
 set "lastpage=Login"
 echo %lastpage%>> memory.tmp
 set "username="
@@ -3107,9 +3179,9 @@ cls
 set "lastpage=SHUTDOWN1"
 echo %lastpage%>> memory.tmp
 echo SHUTTING DOWN...
-timeout /t 5 /nobreak >nul
 set "crash=0"
 del memory.tmp
+del RAM.ini
 if exist memory.tmp del memory.tmp
 
 if %hibernate% neq 1 del HIBERNATE.log
@@ -3129,6 +3201,7 @@ echo %lastpage%>> memory.tmp
 del memory.tmp
 del memory.tmp
 del memory.tmp
+del RAM.ini
 set "crash=0"
 
 exit /b
@@ -3139,10 +3212,31 @@ echo %lastpage%>> memory.tmp
 del memory.tmp
 del memory.tmp
 del memory.tmp
+del RAM.ini
 set "crash=0"
 set "RSTCMD=1"
 exit /b 
 
 
-
-
+< RAM.ini (
+  set /p hibernate=
+  set /p RESTARTATTEMPTS=
+  set /p ErrorL2=
+  set /p organizationstatus=
+  set /p Enterprise=
+  set /p Activationstat=
+  set /p Repair=
+  set /p username=
+  set /p password=
+)
+ (
+  echo %hibernate%
+  echo %RESTARTATTEMPTS%
+  echo %ErrorL2%
+  echo %organizationstatus%
+  echo %Enterprise%
+  echo %Activationstat%
+  echo %Repair%
+  echo %username%
+  echo %password%
+) > RAM.ini
