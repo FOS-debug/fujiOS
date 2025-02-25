@@ -2,41 +2,55 @@
 chcp 65001 >nul
 set "repair=0"
 set "restore=0"
+set "restore2=0"
 set "reset=0"
 set "VOID=0" 
 set "mainfilepath=%userprofile%\FUJIOS"
 cls
+echo Starting Recovery Environment . . .
 timeout /t 5 /nobreak >nul
 if exist systemrpair.log (
     if exist systemrstore.log set "VOID=1"
     if exist factoryrset.log set "VOID=1"
+    if exist systemrstore2.log set "VOID=1"
     set "repair=1"
     echo Booting System Repair Environment
+    timeout /t 2 /nobreak >nul
 )
 timeout /t 2 /nobreak >nul
 
 if exist systemrstore.log (
     if exist systemrpair.log set "VOID=1"
     if exist factoryrset.log set "VOID=1"
+    if exist systemrstore2.log set "VOID=1"
     set "restore=1"
-    echo Booting System Restore Environment
+    echo Booting System Update Restore Environment
+    timeout /t 2 /nobreak >nul
 )
-timeout /t 2 /nobreak >nul
+
+if exist systemrstore2.log (
+    if exist systemrpair.log set "VOID=1"
+    if exist factoryrset.log set "VOID=1"
+    if exist systemrstore.log set "VOID=1"
+    set "restore2=1"
+    echo Booting System Restore Snapshot Environment
+    timeout /t 2 /nobreak >nul
+)
 
 if exist factoryrset.log (
     if exist systemrpair.log set "VOID=1"
     if exist systemrstore.log set "VOID=1"
+    if exist systemrstore2.log set "VOID=1"
     set "reset=1"
     echo Booting System Reset Environment
+    timeout /t 2 /nobreak >nul
 )
-timeout /t 2 /nobreak >nul
 
 if "%VOID%" == "1" (
     goto CONFLICT
 )
 
-echo Booting Recovery Environment . . .
-timeout /t 5 /nobreak >nul
+timeout /t 2 /nobreak >nul
 
 
 if %repair% == 1 (
@@ -47,6 +61,11 @@ if %repair% == 1 (
 if %restore% == 1 (
     del systemrstore.log
     goto SYSTEMRESTORE
+)
+
+if %restore2% == 1 (
+    del systemrstore2.log
+    goto RESTOREFROMSNAP
 )
 
 if %reset% == 1 (
@@ -207,7 +226,6 @@ if exist "%userprofile%\AppData\Bootlog.log" del /F /Q "%userprofile%\AppData\Bo
 if exist "%userprofile%\AppData\kencr" del /F /Q "%userprofile%\AppData\kencr" >nul
 
 timeout /t 5 /nobreak >nul
-x
 if exist "%userprofile%\Documents\BOOTSEC.sys" del /F /Q "%userprofile%\Documents\BOOTSEC.sys" >nul
 if exist "%userprofile%\Documents\BootTime1" del /F /Q "%userprofile%\Documents\BootTime1" >nul
 if exist "%userprofile%\Documents\BootTime2" del /F /Q "%userprofile%\Documents\BootTime2" >nul
@@ -403,6 +421,7 @@ echo The following recovery options are selected:
 echo.
 if "%repair%" == "1" echo - System Repair
 if "%restore%" == "1" echo - System Restore
+if "%restore2%" == "1" echo - System Restore2
 if "%reset%" == "1" echo - Factory Reset
 echo.
 echo Multiple recovery settings cannot be used at the same time.
@@ -410,11 +429,13 @@ echo Please ensure only one of the following is selected:
 echo.
 echo (System Repair)
 echo (System Restore)
+echo (System Restore2)
 echo (Factory Reset)
 echo.
 echo Resolve the conflict and try again.
 if exist factoryrset.log del factoryrset.log
 if exist systemrstore.log del systemrstore.log
+if exist systemrstore2.log del systemrstore2.log
 if exist systemrpair.log del systemrpair.log
 echo.
 pause
@@ -432,6 +453,7 @@ echo Please ensure one of the following options is selected:
 echo.
 echo (System Repair)
 echo (System Restore)
+echo (System Restore2)
 echo (Factory Reset)
 echo.
 echo Then restart the process.
@@ -439,3 +461,26 @@ echo.
 pause
 exit 
 exit /b
+SYSTEMRESTORE2
+
+:RESTOREFROMSNAP
+cls
+echo Available Snapshots:
+dir /b "%BackupDir%" /o-d
+
+:: Prompt user for snapshot selection
+set /p choice="Enter date of snapshot to restore (YYYYMMDD): "
+
+:: Validate selection
+if not exist "%BackupDir%\%choice%" (
+    echo Error: The selected backup does not exist.
+    pause
+    exit /b
+)
+
+echo Restoring snapshot...
+xcopy /E /Y "%BackupDir%\%choice%\*" "%CD%"
+echo Restore complete!
+pause
+exit /b
+

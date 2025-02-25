@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 
 :Coreloaading
 set "CRASHLOADED=1"
@@ -8,7 +9,8 @@ if "%crash%" == "1" (
 ) else (
     set "crash=0"
 )
-call KERNEL32.bat
+set "crash=1"
+call BOOTLOADER.bat
 goto Coreloaading
 
 :Crash
@@ -16,7 +18,7 @@ if "%bsodcode%" == "" goto bcodeud
 for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
-set report=KERNEL_ERROR_DUMP_LOG_%random%.log
+set report=BOOTLOADER_ERROR_DUMP_LOG_%random%.log
 set crshdmpfile=%report%
 cls
 echo.
@@ -36,7 +38,7 @@ echo   PineApple Technologies Inc
 echo    Fuji Operating System
 echo     Copyright 2022-2025
 echo.
-echo [31mFOS Kernel System Has Encountered An Error[0m
+echo [31mFOS Bootloader System Has Encountered An Error[0m
 echo.
 echo Crash Code: %bsodcode%
 echo Additional Info: %InfoAdd%
@@ -56,10 +58,26 @@ echo.
 echo Report Saved At %crshdmpfile%
 echo.
 pause
+:RESCUE
+cls
+echo %OS2% Bootloader v%VERSION2%
+echo     RESCUE MODE
+echo.
+echo %bsodcode%
+echo.
 set "crash=0"
 set "bsodcode="
-goto Coreloaading
-
+:COMMAND
+set /p command="%CD%~> "
+if %command%==START goto Coreloaading
+if %command%==start goto Coreloaading
+if %command%==Start goto Coreloaading
+if %command%==sTart goto Coreloaading
+if %command%==stArt goto Coreloaading
+if %command%==staRt goto Coreloaading
+if %command%==starT goto Coreloaading
+%command%
+goto COMMAND
 
 
 :bcodeud

@@ -258,6 +258,7 @@ if not exist "%Appfolder%\%pkgName%.cmd" (
     goto store_manage
 )
 curl -s -o "%manifestFile%" "%manifestURL%"
+
 if errorlevel 1 (
     echo Error downloading manifest file.
     pause
@@ -288,9 +289,11 @@ del "%Appfolder%\%pkgName%.ini"
 echo Package data for %pkgName% uninstalled (file deleted).
 :Continue_Reinstalling
 echo.
-echo Downloading %pkgName% from %downloadURL%...
-curl -L -o -s "%downloadFolder%\%pkgName%.APPCONFIG" "%downloadURL%.APPCONFIG" >nul
-curl -L -o -s "%downloadFolder%\%pkgName%.APP" "%downloadURL%.APP" >nul
+echo Downloading package info for %pkgName% from %downloadURL%...
+curl -L -s -o "%downloadFolder%\%pkgName%.APPCONFIG" "%downloadURL%.APPCONFIG" 
+timeout /t 5 /nobreak >nul
+curl -L -s -o "%downloadFolder%\%pkgName%.APP" "%downloadURL%.APP" 
+
 if errorlevel 1 (
     echo Error downloading package.
     pause

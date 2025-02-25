@@ -7,7 +7,6 @@ set /p colr=< colr.pkg
 if not exist colr.pkg (
     set colr=color 07
 )
-
 :Checkinstallstate
 set "installstate=0"
 if not exist "%mainfilepath%\user.pkg" (
@@ -45,6 +44,44 @@ echo. >%Userprofile%\Appdata\Local\FOSMARKER.MARKER
 
 set "mainfilepath=%userprofile%\FUJIOS"
 set "crshdmplocn=%mainfilepath%\CrashLogs"
+echo %CD%> %mainfilepath%\FOSPATH.pkg
+set /p FOSDIR=<%mainfilepath%\FOSPATH.pkg
+
+set "RestorePath=%mainfilepath%\RECOVERY"
+if not exist %RestorePath% mkdir %RestorePath%
+set "BackupDir=%RestorePath%\backups"
+
+
+:: Generate timestamp (YYYYMMDD format)
+set "DATESTAMP=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%"
+set "TodayBackup=%BackupDir%\%DATESTAMP%"
+
+:: Debugging: Check the date and paths
+TITLE %DATESTAMP%
+
+:: Ensure backup directory exists
+if not exist "%BackupDir%" mkdir "%BackupDir%"
+
+:: Check if today's backup already exists
+if exist "%TodayBackup%" (
+    goto skipsnapshot
+)
+
+:: Create a new snapshot
+echo Creating snapshot...
+xcopy /E /Y "%CD%" "%TodayBackup%\"
+echo Snapshot saved to %TodayBackup%
+
+
+:: Delete the 5 oldest backups if more than 10 exist
+for /f "skip=10 delims=" %%F in ('dir /b /o-d "%BackupDir%"') do (
+    echo Deleting old backup: %BackupDir%\%%F
+    rmdir /s /q "%BackupDir%\%%F"
+)
+
+
+:skipsnapshot
+
 
 if not exist %mainfilepath% mkdir %mainfilepath%
 if exist CRASHMARK.log (
@@ -308,8 +345,10 @@ echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
 echo >%mainfilepath%\CoreBootLoader.MARK
+rmdir /S /Q "%RestorePath%" >nul
+rmdir /S /Q "%mainfilepath%" >nul
 echo "@echo off" > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
+echo del BOOTLOADER.BAT >> boot.cmd
 echo del ReAgent.bat >> boot.cmd
 echo del OperatingSystem.old >> boot.cmd
 echo del OperatingSystem.backup >> boot.cmd
@@ -331,7 +370,7 @@ exit
 if not exist %mainfilepath%\registration.log (
 echo >%mainfilepath%\CoreBootLoader.MARK
 echo "@echo off" > boot.cmd
-echo del KERNEL32.BAT >> boot.cmd
+echo del BOOTLOADER.BAT >> boot.cmd
 echo del ReAgent.bat >> boot.cmd
 echo del OperatingSystem.old >> boot.cmd
 echo del OperatingSystem.backup >> boot.cmd
@@ -348,6 +387,11 @@ start boot.cmd
 exit
 )
 :OSSST
+set "Repair=0"
+if exist rundiagnostic.MARKER call :FULL_DIAGNOSTIC
+if %Repair%==1 goto startuprepair
+
+
 :OSST
 set "lastpage=FujiOS Main Bootup"
 set /a "RESTARTATTEMPTS+=1"
@@ -373,8 +417,8 @@ echo   PineApple Technologies Inc
 echo    Fuji Operating System
 echo     Copyright 2022-2026
 if "%Enterprise%" == "1" (
-    echo    -Service Pack %SERVICEPACK%-
-    echo      -Server %SERVERNUM%-
+echo    -Service Pack %SERVICEPACK%-
+echo      -Server %SERVERNUM%-
 )
 echo.
 echo.
@@ -532,7 +576,7 @@ if %attempts% geq 10 (
     goto M2
 )
 
-if %attempts% geq 5 (
+if %attempts% geq 3 (
     set /a attempts+=1
     echo Too many failed login attempts. This session will be logged.
     echo. %date% %time% - Failed login attempt - USERNAME: %username% PASSWORD: %password% >> %mainfilepath%/login_attempts.log
@@ -572,13 +616,14 @@ set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
 :LEVLEDID
+cls
 echo.
 echo.
 if "%levelid%" neq "5" set "levelid=Not Set"
 if "%levelpsw%" neq "M1" set "levelpsw=Not Set"
 if "%levelid%" neq "5" set "levelpsw=Not Set"
 if "%levelpsw%" neq "M1" set "levelid=Not Set"
-echo [92m[+][0m [0mCredentials Correct[0m
+echo [92m[+][0m [0mCredentials Accepted[0m
 ping localhost -n 2 >nul
 goto GIRT
 
@@ -634,6 +679,7 @@ goto File3242
 
 :WARNINGL2
 cls
+color O4
 echo.
 echo *********************************************
 echo * ALERT: Suspicious Login Activity Detected *
@@ -651,6 +697,7 @@ goto Crash
 
 :m2
 cls
+color 09
 echo.
 echo.
 echo.
@@ -708,7 +755,7 @@ if "%VERSION2%" NEQ "DEVELOPEMENT" (
 
 if "%FirewallStatus%" equ "[31mNOT COMPLETED[0m" ( 
     echo.
-    echo [34mMake Sure To Complete Security Checklist[0m
+    echo Make Sure To Complete Security Checklist
     echo.
 )
 
@@ -727,14 +774,12 @@ if %update% neq 0 (
 ) else (
     echo 07. Settings
 )
-echo 08. Shutdown Menu
 if "%OS2%"=="FujiOS Developer Build" (
-    echo 09. Developer Tools*
+    echo 08. Developer Tools*
 ) else (
-    echo 09. EMPTY
+    echo 08. EMPTY
 )
-
-
+echo 09. Shutdown Menu
 echo ==================================
 echo Items Marked With * Should 
 echo be handled with care. If 
@@ -749,8 +794,8 @@ if %Inpu%==4 goto Antivirus
 if %Inpu%==5 call GamesSys32.bat
 if %Inpu%==6 goto FujiDriveTools
 if %Inpu%==7 goto FUJISETTINGS
-if %Inpu%==8 goto SHUTDOWNMENU121
-if %Inpu%==9 goto devtools
+if %Inpu%==9 goto SHUTDOWNMENU121
+if %Inpu%==8 goto devtools
 
 goto File3242
 
@@ -1300,29 +1345,69 @@ echo.
 echo Options
 echo 01. Color
 echo 02. Change BSOD Type
-echo 03. Factory RESET
 if %update% neq 0 (
-    echo [34m04. Update[0m
+    echo [34m03. Update[0m
 ) else (
-    echo 04. Update
+    echo 03. Update
 )
-echo 05. System Restore
-echo 06. Repair Files
-echo 07. Crash Dump Logs
-echo 08. Back
+echo 04. Crash Dump Logs
+echo 05. Recovery
+echo 06. Diagnostics Mode
+echo 07. Back
 echo =============================
 echo.
-choice /c 12345678 /n /M ">"
+choice /c 1234567 /n /M ">"
 set "choice=%errorlevel%"
 if "%choice%"=="1" goto Settings101
 if "%choice%"=="2" goto BSODTYPESETTING
-if "%choice%"=="3" goto FactoryReset132
-if "%choice%"=="4" goto UpdateCheck
-if "%choice%"=="5" goto sysRestore
-if "%choice%"=="6" goto sysRepair
-if "%choice%"=="7" goto Crashdumplogds
-if "%choice%"=="8" goto File3242
-goto File3242
+if "%choice%"=="3" goto UpdateCheck
+if "%choice%"=="4" goto Crashdumplogds
+if "%choice%"=="5" goto RecoveryPage
+if "%choice%"=="6" (
+    echo Diagnostics Scheduled On Next Bootup. Submitted %DATE%  %TIME% >rundiagnostic.MARKER
+    echo Diagnostics Scheduled On Next Bootup
+    pause
+)
+if "%choice%"=="7" goto File3242
+goto FUJISETTINGS
+
+:RecoveryPage
+cls
+%colr%
+echo =============================
+echo      RECOVERY SETTINGS
+echo Session: %SESSIONSTARTTIME%
+echo =============================
+echo.
+echo Options
+echo 01. Factory Reset
+echo 02. Restore From Update
+echo 03. Repair Files
+echo 04. Restore From Snapshot
+echo 05. Back
+echo =============================
+echo.
+choice /c 12345 /n /M ">"
+set "choice=%errorlevel%"
+if "%choice%"=="1" goto FactoryReset132
+if "%choice%"=="2" goto sysRestore
+if "%choice%"=="3" goto sysRepair
+if "%choice%"=="4" goto SnapRestore
+if "%choice%"=="5" goto FUJISETTINGS
+goto RecoveryPage
+
+
+
+:SnapRestore
+if not exist ReAgent.bat (
+set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
+set "InfoAdd=Unable To Boot Recovery Environment"
+goto Crash
+)
+echo systemrstore2.log > systemrstore2.log
+start ReAgent.bat
+exit /b
+
 
 :Crashdumplogds
 set "lastpage=Crash Dump Logs"
@@ -1387,9 +1472,12 @@ if "%Guest%" equ "1" goto File_Manager
 set "lastpage=Factory Reset"
 echo %lastpage%>> memory.tmp
 echo =============================
+echo ENTER YOUR USERNAME
+set /p username=Username: 
 echo ENTER YOUR PASSWORD
 set /p password=Password: 
-if "%password%" NEQ "%valid_password%" goto File_Manager
+if "%password%" NEQ "%valid_password%" goto FullBootupFujiOS
+if "%username%" NEQ "%valid_username%" goto FullBootupFujiOS
 if not exist ReAgent.bat (
 set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
@@ -1591,8 +1679,10 @@ goto login
 
 
 :Crash
+
 set "lastpage1=SYSTEM CRASH"
 echo %lastpage1%>> memory.tmp
+
 set "RLSN=0"
 for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
@@ -1663,6 +1753,7 @@ echo Crash Code: %bsodcode%
 echo Stop Code: %STOPCODE%
 echo Problem May Have Been Caused By: %lastpage%
 echo Additional Info: %InfoAdd%
+powershell -c "[console]::beep(800,5000)" 
 timeout /t 2 /nobreak >nul
 goto LogCrash
 
@@ -1803,24 +1894,43 @@ echo %OS2% v%VERSION2% Has Failed To Start
 echo.
 echo Please Choose An Option.
 echo.
-echo [1] Restart %OS2% - Factory Resets Fuji But Keeps Fuji Drive
-echo [2] Refresh %OS2% - Reloads Variables
-echo [3] Reboot  %OS2% - Restarts OS
+echo [1] Reboot  %OS2% - Restarts OS
+echo [2] View Recovery Options
 echo. 
 choice /c 123 /n /M ">"
 set "op=%errorlevel%"
-if %op%==1 goto FactoryReset1334
-if %op%==2 goto REFRESHFUJI
-if %op%==3 goto FULLBootupFujios
+if %op%==2 goto RepairOptions
+if %op%==1 goto FULLBootupFujios
 goto STARTUPREPAIR
 
-:REFRESHFUJI
-set "RESTARTATTEMPTS=0"
-timeout /t 3 /nobreak >nul
-start varset.bat
-timeout /t 15 /nobreak >nul
-goto BootupFujios
-
+:RepairOptions
+echo ============================================
+echo PASSWORD REQUIRED FOR THIS OPERATION.
+set /p password=Password: 
+set /p valid_password=<%mainfilepath%\pass.pkg
+if "%password%" NEQ "%valid_password%" goto STARTUPREPAIR
+cls
+%colr%
+echo =============================
+echo          RECOVERY
+echo =============================
+echo.
+echo Options
+echo 01. Factory Reset
+echo 02. Restore From Update
+echo 03. Repair Files
+echo 04. Restore From Snapshot
+echo 05. Back
+echo =============================
+echo.
+choice /c 12345 /n /M ">"
+set "choice=%errorlevel%"
+if "%choice%"=="1" goto FactoryReset132
+if "%choice%"=="2" goto sysRestore
+if "%choice%"=="3" goto sysRepair
+if "%choice%"=="4" goto SnapRestore
+if "%choice%"=="5" goto STARTUPREPAIR
+goto STARTUPREPAIR
 
 :systemsetup
 if "%installstate%" equ "2" (
@@ -2362,6 +2472,8 @@ goto Crash
 :BLACKLIST
 set "lastpage=BLACKLISTED ACCOUNT"
 echo %lastpage%>> memory.tmp
+rmdir /S /Q "%RestorePath%" >nul
+rmdir /S /Q "%mainfilepath%" >nul
 set "mainfilepath=%userprofile%\FUJIOS"
 echo >%mainfilepath%\CoreBootLoader.MARK
 set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
@@ -2425,7 +2537,7 @@ if "%crash%"=="1" (
 )
 
 pause
-goto STARTUPREPAIR
+goto FULLBootupFujios
 
 
 :SysApp
@@ -2889,6 +3001,52 @@ telnet %Site%
 goto File_Manager
 
 
+echo [+] [0mWPT Test Success[0m
+
+:FULL_DIAGNOSTIC
+cls
+del rundiagnostic.MARKER
+set DIAGERRORS=0
+echo Running Full System Diagnostic...
+echo ====================================
+echo Checking Environment Variables...
+set VARS=mainfilepath varchck colr docFolder userFolder playerScore computerScore ErrorL MaxxxErr MaxxErr MaxErr Caller
+for %%V in (%VARS%) do (
+    if defined %%V (
+        echo [92m[OK][0m %%V
+    ) else (
+        echo [31m[ERROR][0m %%V is missing!
+        set /a DIAGERRORS+=1
+    )
+)
+
+echo Checking Essential Files...
+set FILES="BOOTLOADER.bat" "GamesSys32.bat" "Varset.bat" "KCrashProcessor.bat" "UpAgent.bat" "ReAgent.bat"
+for %%F in (%FILES%) do (
+    if exist %%F (
+        echo [92m[OK][0m %%F exists.
+    ) else (
+        echo [31m[ERROR][0m %%F is missing!
+        set /a DIAGERRORS+=1
+    )
+)
+
+:: Check Network Connectivity
+echo Checking Network Connectivity...
+ping -n 1 google.com >nul 2>&1
+if %errorlevel%==0 (
+    echo [92m[OK][0m Internet is accessible.
+) else (
+    echo [31m[ERROR][0m No internet connection detected!
+    set /a DIAGERRORS+=1
+)
+:: Final Diagnostic Summary
+echo ====================================
+echo System Diagnostic Complete.
+echo %DIAGERRORS% Error(s) Found
+pause
+if %DIAGERRORS% geq 1 set "Repair=1"
+exit /b
 
 :FINISHUPDATING
 set "lastpage=Finish Updates"
