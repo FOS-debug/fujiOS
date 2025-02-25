@@ -13,6 +13,16 @@ if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
 if "%CRASHLOADED%" neq "1" exit /b
 set "crash=1"
 
+
+
+for /f "tokens=2 delims==" %%I in ('wmic bios get Version /value') do set "BIOSVersion=%%I"
+for /f "tokens=2 delims==" %%I in ('wmic os get FreePhysicalMemory /value') do set "BIOSram=%%I"
+set BIOS.SETUP=set
+%BIOS.SETUP% BIOS.version=%BIOSVersion%
+%BIOS.SETUP% BIOS.ram=%BIOSram%
+set BIOS.SETUP=exit
+
+
 set "OS2=FujiOS"
 set /p VERSION2=<version.txt
 if exist "License.txt" goto restart
@@ -20,6 +30,7 @@ Set "debug1453="
 set "bsodcode=BOTLDR_LICENSE_REVOKED"
 set "crash=1"
 exit /b
+
 
 :restart
 if exist %userprofile%\AppData\Local\lcnse.log goto FJJ
@@ -45,44 +56,19 @@ if exist OperatingSystem.Backup (
     exit
 )
 :Check1
-set /p foscd=<icd.ini
-< settings.ini (
-  set /p Pin1=
-  set /p Pin2=
-  set /p Pin3=
-  set /p Pin4=
-  set /p Pin5=
-  set /p Pin6=
-  set /p Pin7=
-  set /p Pin8=
-  set /p PinVerif=
-)
-
-set "validOSFiles=OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat"
+set "validOSFiles=OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat Kernel.bat"
 set validCount=0
-
-if "%foscd%" neq "1121" goto BCW
-if "%PinVerif%" neq "01000110.01001111.01010011" goto BCW
 for %%F in (%validOSFiles%) do (
     if exist "%%F" (
         set /a validCount+=1
         set "osfile[!validCount!]=%%F"
     )
 )
-
 set "documentsPath=%mainfilepath%"
-
-if %validCount%==0 (
-    set "bsodcode=BOTLDR_NO VALID OS"
-    set "crash=1"
-    exit /b
-)
 
 if %validCount% GTR 1 (
     goto DualBoot
 )
-
-
 goto check2
 
 :check2
@@ -524,13 +510,6 @@ exit
 
 :cont435678436543
 
-
-
-
-
-
-
-
 set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
 echo %PRIVATEKEY%>PRIVATEKEY.ini
 call OSCrashProcessor.bat
@@ -540,30 +519,7 @@ set "bsodcode=BOTLDR_INTERPAGE JUMP"
 set "crash=1"
 exit /b
 
-:BCW
-cls
-echo Possible BIOS Corruption 
-echo Press any key to repair
-pause >nul
-echo 1121>icd.ini
-goto SETCODES
 
-
-
-
-:SETCODES
-(
-  echo 0
-  echo 0
-  echo 0
-  echo 0
-  echo 1
-  echo 1
-  echo 1
-  echo 1
-  echo 01000110.01001111.01010011
-) > settings.ini
-goto restart
 
 :acceptaggreements
 (

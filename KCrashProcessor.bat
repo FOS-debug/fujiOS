@@ -10,7 +10,7 @@ if "%crash%" == "1" (
     set "crash=0"
 )
 set "crash=1"
-call BOOTLOADER.bat
+call POST.bat
 goto Coreloaading
 
 :Crash
