@@ -3,6 +3,8 @@ setlocal EnableDelayedExpansion
 
 :Coreloaading
 set "CRASHLOADED=1"
+set /p VERSION2=<version.txt
+set "OS2=FujiOS"
 
 if "%crash%" == "1" (
     goto Crash
@@ -11,9 +13,11 @@ if "%crash%" == "1" (
 )
 set "crash=1"
 call POST.bat
+if "%POST%"=="PASS" call BOOTLOADER.bat
 goto Coreloaading
 
 :Crash
+if "%POST%"=="FAIL" set "bsodcode= POST TEST FAIL"
 if "%bsodcode%" == "" goto bcodeud
 for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"

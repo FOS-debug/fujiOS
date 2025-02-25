@@ -56,7 +56,6 @@ if exist OperatingSystem.Backup (
     exit
 )
 :Check1
-set "validOSFiles=OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat Kernel.bat"
 set validCount=0
 for %%F in (%validOSFiles%) do (
     if exist "%%F" (
