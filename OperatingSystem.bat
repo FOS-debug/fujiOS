@@ -722,9 +722,6 @@ goto m2
 set "lastpage=File Manager Menu"
 echo %lastpage%>> memory.tmp
 
-if %RLSN% GEQ 10 set "bsodcode=MAX_ERROR_LEVEL_REACHED"
-if %RLSN% GEQ 10 goto Crash
-set /a "RLSN+=1"
 if exist "%mainfilepath%\BOOTSEC2" goto M2
 set "ErrorL=0"
 %Colr%
