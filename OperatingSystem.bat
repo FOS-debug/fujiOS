@@ -2663,13 +2663,30 @@ if "%choice%"=="4" (
     echo. >>%mainfilepath%\AntiVirusVirusTest.exe
 
     echo. >>%Appfolder%\AntiVirusAppTest.cmd
-    echo Fake Virus Folders Created. Now Run The Antivirus Scan To Test
+    echo Test Virus Folders Created. Now Run The Antivirus Scan To Test
     echo NOTE: Data Leak Protection Is Not Part Of The Test
     pause
 )
-if "%choice%"=="5" goto File_Manager
+if "%choice%"=="5" goto AntivirusUpdate
 if "%choice%"=="6" goto File_Manager
 
+goto Antivirus
+
+:AntivirusUpdate
+cls
+echo Installing Latest Antivirus Updates
+if exist Viruslist.txt ren Viruslist.txt Viruslist.bak
+curl -s -o Viruslist.txt %SERVER_URL%/Viruslist.txt
+if not exist Viruslist.txt (
+    echo There Was An Error Installing Antivirus Updates
+    if exist Viruslist.bak ren Viruslist.bak Viruslist.txt
+) else (
+    echo Antivirus Installed Successfully
+    if exist Viruslist.bak del Viruslist.bak 
+)
+echo.
+echo.
+pause
 goto Antivirus
 
 :Safw
