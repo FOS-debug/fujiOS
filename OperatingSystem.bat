@@ -1316,8 +1316,7 @@ set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
-echo systemrstore2.log > systemrstore2.log
-start ReAgent.bat
+ReAgent restore2
 exit /b
 
 
@@ -1354,8 +1353,7 @@ set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
-echo systemrpair.log > systemrpair.log
-start ReAgent.bat
+ReAgent repair
 exit /b
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1370,8 +1368,7 @@ set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
-echo systemrstore.log > systemrstore.log
-start ReAgent.bat
+ReAgent restore
 exit /b
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1396,8 +1393,8 @@ set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 
 )
-echo factoryrset.log > factoryrset.log
-start ReAgent.bat
+
+ReAgent reset
 exit /b
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
