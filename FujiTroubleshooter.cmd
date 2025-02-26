@@ -1,5 +1,6 @@
 @echo off
 setlocal
+start https://docs.google.com/forms/d/e/1FAIpQLSdGiNb8u3iiSU6cVAjA9vygOxLAVbwEmaooNMHyM_DZMSxSLQ/viewform
 
 REM --- Set up a temporary folder for packaging the files ---
 set "TMPDIR=%TEMP%\FeedbackReportTemp"
