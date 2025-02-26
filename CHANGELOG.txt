@@ -1,10 +1,15 @@
-ATTENTION EVERYONE
+Bootloader:
+Implemented Power-On Self-Test (POST) error checking
+Added support for booting multiple operating systems from a single bootloader
+Introduced Rescue Mode, which activates if POST fails, replacing the previous kernel-based maintenance mode
+Various bug fixes and stability improvements
 
-With the release of Version 500, a full OS reinstallation is required.
+Main OS:
+Removed maintenance mode due to security concerns and performance issues
+Added Virtual RAM Disk to improve overall system efficiency (though it has minimal impact on users directly)
 
-Please see me for assistance with the reinstallation process.
+Other Changes:
+Improved ReAgent functionality and made it compatible with the following command structure:
+Usage: ReAgent [reset, restore2, restore, repair]
 
-OS 500 is now available!
-If you haven’t updated yet, come see me for reinstall help ASAP.
-
-Thank you!
+General optimizations and refinements
