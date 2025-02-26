@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 set "mainfilepath=%userprofile%\FUJIOS"
+set "RestorePath=%mainfilepath%\RECOVERY"
+if not exist %RestorePath% mkdir %RestorePath%
+set "BackupDir=%RestorePath%\backups"
 
 setlocal EnableDelayedExpansion
 
@@ -21,12 +24,13 @@ if %errorlevel% neq 1 (
     set errorlevel=
     exit /b
 )
+
 if /I "%1"=="reset" goto :FACTORYRESET
 if /I "%1"=="restore2" goto :RESTOREFROMSNAP
 if /I "%1"=="restore" goto :SYSTEMRESTORE
 if /I "%1"=="repair" goto :systemrepair
 
-echo Invalid mode: %1
+echo Invalid agent: %1
 echo Available modes: reset, restore2, restore, repair
 exit /b
 

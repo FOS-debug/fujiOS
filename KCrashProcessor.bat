@@ -5,7 +5,6 @@ setlocal EnableDelayedExpansion
 set "CRASHLOADED=1"
 set /p VERSION2=<version.txt
 set "OS2=FujiOS"
-
 if "%crash%" == "1" (
     goto Crash
 ) else (
@@ -17,54 +16,20 @@ if "%POST%"=="PASS" call BOOTLOADER.bat
 goto Coreloaading
 
 :Crash
+set "crash=0"
 if "%POST%"=="FAIL" set "bsodcode= POST TEST FAIL"
 if "%bsodcode%" == "" goto bcodeud
-for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
-for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
-for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
-set report=BOOTLOADER_ERROR_DUMP_LOG_%random%.log
-set crshdmpfile=%report%
-cls
-echo.
-echo.
-echo ==============================
-echo ********   *******    ******** 
-echo /**/////   **/////**  **////// 
-echo /**       **     //**/**       
-echo /******* /**      /**/*********
-echo /**////  /**      /**////////**
-echo /**      //**     **        /**
-echo /**       //*******   ******** 
-echo //         ///////   ////////  
-echo ==============================
-echo.
-echo   PineApple Technologies Inc
-echo    Fuji Operating System
-echo     Copyright 2022-2025
-echo.
-echo [31mFOS Bootloader System Has Encountered An Error[0m
-echo.
-echo Crash Code: %bsodcode%
-echo Additional Info: %InfoAdd%
-pause
 :RESCUE
 cls
+echo error: %bsodcode%
 echo ==============================
-echo    %OS2% Bootloader v%VERSION2%
-echo         RESCUE MODE
-echo ==============================
-echo.
-echo Error Code: %bsodcode%
-echo.
-set "crash=0"
-set "bsodcode="
-echo START to start Boot
-echo.
-
+timeout /t 3 /nobreak >nul
+echo Entering rescue mode...
+timeout /t 3 /nobreak >nul
 :COMMAND
 echo.
-set /p "command=%OS2%~> "
-if /i "%command%"=="START" goto Coreloaading
+set /p "command=%OS2% rescue> "
+if /i "%command%"=="Reboot" goto Coreloaading
 if "%command%" == "Get.Data" (
     for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
     for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
@@ -77,6 +42,44 @@ if "%command%" == "Get.Data" (
     echo %SerialNumber%
     echo.
 )
+
+if "%command%" == "help" (
+    echo.
+    echo Available commands:
+    echo ----------------------
+    echo Reboot           - Reboots the system
+    echo ReAgent          - Initiates Recovery agent.
+    echo Get.Data         - Retrieves system information including memory, CPU speed, and serial number
+    echo Dump.Data        - Initiates the memory dump process
+    echo.
+    echo dir              - Lists the files and directories in the current directory
+    echo cd               - Changes the current directory
+    echo cls              - Clears the screen
+    echo echo             - Displays a message or sets the echo state
+    echo copy             - Copies files from one location to another
+    echo move             - Moves files from one location to another
+    echo del              - Deletes a file
+    echo ren              - Renames a file or directory
+    echo mkdir            - Creates a new directory
+    echo rmdir            - Removes a directory
+    echo tasklist         - Displays a list of currently running processes
+    echo taskkill         - Terminates a process by its name or PID
+    echo shutdown         - Shuts down or restarts the computer
+    echo systeminfo       - Displays detailed configuration information about the computer
+    echo ipconfig         - Displays IP configuration information for all network adapters
+    echo ping             - Tests the network connection to a remote host
+    echo netstat          - Displays network connections, routing tables, and interface statistics
+    echo chkdsk           - Checks the file system and status of a disk
+    echo sfc /scannow     - Scans and repairs system files
+    echo msconfig         - Opens the System Configuration utility
+    echo regedit          - Opens the Registry Editor
+    echo gpupdate         - Updates group policy settings
+    echo diskpart         - Opens the disk partitioning tool
+    echo wmic             - Windows Management Instrumentation Command-line tool
+    echo.
+)
+
+
 
 if "%command%" == "Dump.Data" (
     goto Memdump
