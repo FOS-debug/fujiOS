@@ -35,10 +35,15 @@ if %errorlevel% neq 0 (
     echo [OK] RAM check passed.
 )
 
+if exist error (
+    set /a errors+=1
+    del error
+)
 
 
 
 wmic LogicalDisk where "DeviceID='C:'" get FreeSpace | findstr /r "[1-9]" > nul
+
 if %errorlevel% neq 0 (
     echo [ERROR] Insufficient Disk Space.
     set /a errors+=1
