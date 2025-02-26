@@ -52,7 +52,7 @@ echo Welcome to the FujiAPPs Store.                                         Fuji
 echo Here, you can install third party apps!                                          ___/ / /_/ /_/ / /  /  __/
 echo                                                                                /____/\__/\____/_/   \___/ 
 echo ------------------------------------------------------------------------------
-echo.
+echo. 
 echo.
 echo Welcome to the main menu. Pick one item.
 echo.
@@ -158,6 +158,31 @@ if exist "%Appfolder%\%pkgName%.cmd" (
 
 :installPackage
 cls
+echo Disclaimer:
+echo We are not responsible for any third-party applications, 
+echo including those listed in the official manifest. These 
+echo applications are developed and maintained by independent 
+echo entities, and we do not guarantee their safety, 
+echo functionality, or compliance with privacy regulations.
+echo.
+echo Please be aware that third-party applications may collect 
+echo and process your user data under their own privacy policies, 
+echo which are separate from ours. We strongly recommend reviewing 
+echo each applications privacy policy and terms of service before installation.
+echo.
+echo Additionally, some applications may pose security risks, 
+echo including but not limited to malware, data breaches, or 
+echo other malicious activities that could harm your device or 
+echo compromise your information. By downloading and using any 
+echo third-party application, you acknowledge that you do so at 
+echo your own risk, and we disclaim any liability for any 
+echo damages or issues that may arise.
+echo.
+echo If you have concerns about an application, we encourage you 
+echo to research it thoroughly and use appropriate security measures.
+timeout /t 5 /nobreak >nul
+pause
+cls
 echo Installing package: %pkgName%
 :: Refresh the manifest to be sure it is up-to-date.
 curl -s -o "%manifestFile%" "%manifestURL%" >nul
@@ -193,22 +218,40 @@ if not exist "%downloadFolder%\%pkgName%.APPCONFIG" (
     goto store_manage
 )
 echo Package info for %pkgName% downloaded successfully.
-timeout /t 5 /nobreak >nul
+timeout /t 2 /nobreak >nul
+
+set "AppName="
+set "UID="
+set "AppGenre="
+set "Developer="
 
 call :Initialize_Apps2
-< %Appfolder%\%pkgName%.ini (
-  set /p AppName=
-  set /p UID=
-  set /p AppGenre=
-  set /p Developer=
-  set /p var2=
-  set /p var3=
-  set /p var4=
-  set /p var5=
-  set /p var6=
-  set /p var7=
-  set /p var8=
-  set /p var9=
+set "iniFile=%Appfolder%\%pkgName%.ini"
+
+set count=0
+for /f "usebackq delims=" %%A in ("%iniFile%") do (
+    set /a count+=1
+    if !count! equ 1 set "AppName=%%A"
+    if !count! equ 2 set "UID=%%A"
+    if !count! equ 3 set "AppGenre=%%A"
+    if !count! equ 4 set "Developer=%%A"
+)
+
+if not defined AppName (
+    echo ERROR: AppName is missing or empty.
+    pause
+)
+if not defined UID (
+    echo ERROR: UID is missing or empty.
+    pause
+)
+if not defined AppGenre (
+    echo ERROR: AppGenre is missing or empty.
+    pause
+)
+if not defined Developer (
+    echo ERROR: Developer is missing or empty.
+    pause
 )
 cls
 echo.
@@ -350,19 +393,36 @@ goto store_manage
 
 :runPackage
 cls
-< %Appfolder%\%pkgName%.ini (
-  set /p AppName=
-  set /p UID=
-  set /p AppGenre=
-  set /p Developer=
-  set /p var2=
-  set /p var3=
-  set /p var4=
-  set /p var5=
-  set /p var6=
-  set /p var7=
-  set /p var8=
-  set /p var9=
+set "AppName="
+set "UID="
+set "AppGenre="
+set "Developer="
+set "iniFile=%Appfolder%\%pkgName%.ini"
+
+set count=0
+for /f "usebackq delims=" %%A in ("%iniFile%") do (
+    set /a count+=1
+    if !count! equ 1 set "AppName=%%A"
+    if !count! equ 2 set "UID=%%A"
+    if !count! equ 3 set "AppGenre=%%A"
+    if !count! equ 4 set "Developer=%%A"
+)
+
+if not defined AppName (
+    echo ERROR: AppName is missing or empty.
+    pause
+)
+if not defined UID (
+    echo ERROR: UID is missing or empty.
+    pause
+)
+if not defined AppGenre (
+    echo ERROR: AppGenre is missing or empty.
+    pause
+)
+if not defined Developer (
+    echo ERROR: Developer is missing or empty.
+    pause
 )
 cls
 echo. [97m
@@ -402,6 +462,28 @@ cls
 echo %AppName% has ended.
 echo.
 pause
+chcp 65001 > nul
+cls
+
+:: Set console size (adjust as needed)
+mode con: cols=80 lines=30
+
+:: Enable virtual terminal processing for ANSI escape codes
+
+:: Loop to fill the screen with random numbers and colors
+for /L %%y in (1,1,30) do (
+    setlocal EnableDelayedExpansion
+    set "line="
+    for /L %%x in (1,1,80) do (
+        set /A "randNum=!random! %% 10"
+        set /A "randColor=!random! %% 8 + 30"
+        for %%A in (!randNum!) do set "line=!line![!randColor!m%%A "
+    )
+    echo !line![0m
+    endlocal
+)
+
+timeout /t 5 /nobreak >nul
 goto store_manage
 
 :store_settings
@@ -486,8 +568,11 @@ if "%SafetyWarning%"=="Yes" (
     echo.
     echo [33mWARNING: Disabling safety warnings may expose your system to potential risks.[97m
     echo Are you sure you want to proceed?
+    echo We highly recommend against disabling safety warnings.
     echo.
     choice /c yn /n /m "Confirm disabling safety warnings? [Y/N] "
+    if errorlevel 2 goto store_settings
+    choice /c yn /n /m "Are You Sure? [Y/N] "
     if errorlevel 2 goto store_settings
 )
 

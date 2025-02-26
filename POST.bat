@@ -81,6 +81,7 @@ echo.
 if "%error%" neq "0" (
     echo Press Any Key To Run Setup Program
     pause >nul
+    set /a errors+=1
     goto SetupBIOS
 )
 

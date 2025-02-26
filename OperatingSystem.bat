@@ -483,9 +483,7 @@ echo      -Server %SERVERNUM%-
 echo.
 echo.
 echo.
-CHOICE /c NM /n /t 5 /d N >nul
-set OPTION=%ERRORLEVEL%
-If %OPTION%==2 goto MAINTENANCEMODE
+timeout /t 2 /nobreak >nul
 if "%CRASHED%" == "1" goto UNSUCSSHTDWN
 if %RESTARTATTEMPTS% GTR 6 goto ERR16
 if %RESTARTATTEMPTS% GTR 5 goto ERR17
@@ -1091,162 +1089,7 @@ goto Crash
 x
 
 
-:MAINTENANCEMODE
-cls
-set "PERMS=DefaultNoUser"
-set "freecmd=0"
-set "DMP1=0"
-set "DMP2=0"
-set "DMP3=0"
-set "DMP4=0"
-set "DMP5=0"
 
-echo FOS Maintenance Terminal
-echo.
-goto MTERMINAL
-
-:MTERMINAL
-set /p "CMD=>" 
-
-if "%CMD%" == "SET TERMINAL/INQUIRE" (
-    set "DMP1=1"
-    echo.
-    echo %OS2% - %VERSION2%
-)
-
-if "%CMD%" == "SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F" (
-    set "DMP2=1"
-)
-
-if "%CMD%" == "SET HALT RESTART/MAINT" (
-    for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
-    for /f "tokens=2 delims==" %%I in ('wmic cpu get MaxClockSpeed /value') do set "CPUSpeed=%%I"
-    for /f "tokens=2 delims==" %%I in ('wmic bios get SerialNumber /value') do set "SerialNumber=%%I"
-    set "DMP3=1"
-    set "PERMS=KernelAdmin"
-    echo %OS2% BOOTAGENT %VERSION2% INITIALIZED
-    echo %TotalMemory% KB
-    echo %CPUSpeed% MHz
-    echo %SerialNumber%
-    echo.
-)
-
-if "%CMD%" == "RUN DEBUG/ACCOUNTS.F" (
-    set "DMP4=1"
-)
-
-if "%CMD%" == "DUMP ACCOUNTS.F" goto Memdump
-
-
-if "%CMD%" == "SET TERMINAL/FACTORY_RESET" (
-    echo.
-    echo Initiating Factory Reset...
-    goto FactoryReset132
-)
-
-
-
-
-
-if "%CMD%" == "SET SYSTEM/FORCE_UPDATE" (
-    echo.
-    echo Forcing System Update...
-    goto updateing
-)
-
-
-
-
-
-
-
-
-
-if "%CMD%" == "HELP" (
-    echo.
-    echo Available Commands:
-    echo ------------------------------
-    echo SET TERMINAL/INQUIRE                       Displays system version info.
-    echo SET FILE/PROTECTION=OWNER:RWED ACCOUNTS.F  Sets file permissions.
-    echo SET HALT RESTART/MAINT                     Initializes Kernel Mode.
-    echo RUN DEBUG/ACCOUNTS.F                       Runs account debug.
-    echo DUMP ACCOUNTS.F                            Dumps account memory [Admin only].
-    echo SET TERMINAL/FACTORY_RESET                 Initiates factory reset.
-    echo SET SYSTEM/FORCE_UPDATE                    Forces system update.
-    echo SET TERMINAL/FREECMD                       Toggles FreeCmd mode.
-    echo EXIT                                       Exits the terminal.
-    echo.
-)
-
-
-
-if "%CMD%" == "SET TERMINAL/FREECMD" (
-    if "%freecmd%" == "0" (
-        set "freecmd=1"
-        echo.
-        echo FreeCmd Mode Enabled.
-    ) else (
-        set "freecmd=0"
-        echo.
-        echo FreeCmd Mode Disabled.
-    )
-    echo.
-)
-
-
-:: Execute FreeCmd if enabled
-if "%freecmd%" == "1" %CMD%
-
-if "%DMP5%" == "1" (
-    if "%DMP1%" == "1" (
-        if "%DMP2%" == "1" (
-            if "%DMP3%" == "1" (
-                if "%DMP4%" == "1" (
-                    goto OldPSWlist
-                )  
-            )
-        )
-    )
-)
-
-
-
-
-if "%CMD%" == "EXIT" goto BootupFujios
-goto MTERMINAL
-
-:Memdump
-set "DMP5=1"
-echo.
-echo Current Permissions [%PERMS%]
-pause
-if %PERMS% neq KernelAdmin goto MTERMINAL 
-echo Dumping Current User Service . . . 
-set "Dumpfile=$%Random%KernelMiniDump.dmp"
-timeout /t 5 /nobreak >nul
-echo. > %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%Enterprise%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%UAK%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%FPS_BROWSER_USER_PROFILE_STRING%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%hibernate%%RANDOM%%RANDOM%%privatekey2%%RANDOM%%RANDOM%%VERSION2%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%valid_username%%UPDATE%%SESSIONSTARTTIME%%valid_password%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%MaxxxErr%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%regnumber%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %OS2%%RANDOM%%MaxxErr%AdMni%RANDOM%%RANDOM%%ErrorL%%RANDOM%%RANDOM%%HOMEPATH%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%MaxErr%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%PRIVATEKEY%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%OS%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%FPS_BROWSER_APP_PROFILE_STRING%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%RANDOM%%RANDOM%%RANDOM%%attempts%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-echo %RANDOM%%documentsPath%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%ComSpec%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM% >> %Dumpfile%
-goto MTERMINAL
-
-:OldPSWlist
-cls
-echo Memory Dump:
-echo.
-type %Dumpfile%
-echo.
-pause
-goto BootupFujios
 
 :SHUTDOWNMENU121
 set "lastpage=Shutdown Menu"
@@ -2345,7 +2188,7 @@ echo 01. Enterprise Security
 echo 02. Enterprise Settings
 echo 03. Enterprise Checklist
 echo 04. Reset Password
-echo 05. Maintenance Mode
+echo 05. 
 echo 06. Service Manager
 echo 07. 
 echo 08. 
@@ -2359,7 +2202,7 @@ if %Inpu%==1 goto EntSecurity
 if %Inpu%==2 goto EntSettings
 if %Inpu%==3 goto EntChecklist
 if %Inpu%==4 goto NewPass
-if %Inpu%==5 goto MAINTENANCEMODE
+if %Inpu%==5 goto 
 if %Inpu%==6 goto SvcManager
 if %Inpu%==7 goto 
 if %Inpu%==8 goto 

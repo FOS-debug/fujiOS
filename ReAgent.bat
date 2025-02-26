@@ -1,83 +1,34 @@
 @echo off
 chcp 65001 >nul
-set "repair=0"
-set "restore=0"
-set "restore2=0"
-set "reset=0"
-set "VOID=0" 
 set "mainfilepath=%userprofile%\FUJIOS"
-cls
-echo Starting Recovery Environment . . .
-timeout /t 5 /nobreak >nul
-if exist systemrpair.log (
-    if exist systemrstore.log set "VOID=1"
-    if exist factoryrset.log set "VOID=1"
-    if exist systemrstore2.log set "VOID=1"
-    set "repair=1"
-    echo Booting System Repair Environment
-    timeout /t 2 /nobreak >nul
-)
-timeout /t 2 /nobreak >nul
 
-if exist systemrstore.log (
-    if exist systemrpair.log set "VOID=1"
-    if exist factoryrset.log set "VOID=1"
-    if exist systemrstore2.log set "VOID=1"
-    set "restore=1"
-    echo Booting System Update Restore Environment
-    timeout /t 2 /nobreak >nul
+setlocal EnableDelayedExpansion
+
+:: Check if the user provided an argument
+if "%1"=="help" (
+    echo Usage: ReAgent [reset, restore2, restore, repair]
+    exit /b
 )
 
-if exist systemrstore2.log (
-    if exist systemrpair.log set "VOID=1"
-    if exist factoryrset.log set "VOID=1"
-    if exist systemrstore.log set "VOID=1"
-    set "restore2=1"
-    echo Booting System Restore Snapshot Environment
-    timeout /t 2 /nobreak >nul
+if "%1"=="" (
+    echo Usage: ReAgent [reset, restore2, restore, repair]
+    exit /b
 )
 
-if exist factoryrset.log (
-    if exist systemrpair.log set "VOID=1"
-    if exist systemrstore.log set "VOID=1"
-    if exist systemrstore2.log set "VOID=1"
-    set "reset=1"
-    echo Booting System Reset Environment
-    timeout /t 2 /nobreak >nul
+:: Detect the mode and jump to the corresponding function
+choice /c yn /m "Confirm %1> "
+if %errorlevel% neq 1 (
+    set errorlevel=
+    exit /b
 )
+if /I "%1"=="reset" goto :FACTORYRESET
+if /I "%1"=="restore2" goto :RESTOREFROMSNAP
+if /I "%1"=="restore" goto :SYSTEMRESTORE
+if /I "%1"=="repair" goto :systemrepair
 
-if "%VOID%" == "1" (
-    goto CONFLICT
-)
-
-timeout /t 2 /nobreak >nul
-
-
-if %repair% == 1 (
-    del systemrpair.log
-    goto systemrepair
-)
-
-if %restore% == 1 (
-    del systemrstore.log
-    goto SYSTEMRESTORE
-)
-
-if %restore2% == 1 (
-    del systemrstore2.log
-    goto RESTOREFROMSNAP
-)
-
-if %reset% == 1 (
-    del factoryrset.log
-    goto FACTORYRESET
-)
-goto ERROR1
-goto ERROR1
-goto ERROR1
-goto ERROR1
-goto ERROR1
-
+echo Invalid mode: %1
+echo Available modes: reset, restore2, restore, repair
+exit /b
 
 :FACTORYRESET
 color 1F
@@ -412,56 +363,7 @@ timeout /t 5 /nobreak >nul
 exit /b
 exit
 
-:CONFLICT
-cls
-echo.
-echo.
-echo [31mERROR: CONFLICTING RECOVERY OPTIONS DETECTED[0m
-echo The following recovery options are selected:
-echo.
-if "%repair%" == "1" echo - System Repair
-if "%restore%" == "1" echo - System Restore
-if "%restore2%" == "1" echo - System Restore2
-if "%reset%" == "1" echo - Factory Reset
-echo.
-echo Multiple recovery settings cannot be used at the same time.
-echo Please ensure only one of the following is selected:
-echo.
-echo (System Repair)
-echo (System Restore)
-echo (System Restore2)
-echo (Factory Reset)
-echo.
-echo Resolve the conflict and try again.
-if exist factoryrset.log del factoryrset.log
-if exist systemrstore.log del systemrstore.log
-if exist systemrstore2.log del systemrstore2.log
-if exist systemrpair.log del systemrpair.log
-echo.
-pause
-exit 
-exit /b
 
-:ERROR1
-cls
-echo.
-echo.
-echo [31mERROR: NO RECOVERY ENVIRONMENT SELECTED[0m
-echo No valid recovery option has been detected.
-echo.
-echo Please ensure one of the following options is selected:
-echo.
-echo (System Repair)
-echo (System Restore)
-echo (System Restore2)
-echo (Factory Reset)
-echo.
-echo Then restart the process.
-echo.
-pause
-exit 
-exit /b
-SYSTEMRESTORE2
 
 :RESTOREFROMSNAP
 cls
