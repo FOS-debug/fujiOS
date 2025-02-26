@@ -9,6 +9,7 @@ Removed maintenance mode due to security concerns and performance issues
 Added Virtual RAM Disk to improve overall system efficiency (though it has minimal impact on users directly)
 
 Other Changes:
+Added More Applications To Manifest
 Improved ReAgent functionality and made it compatible with the following command structure:
 Usage: ReAgent [reset, restore2, restore, repair]
 
