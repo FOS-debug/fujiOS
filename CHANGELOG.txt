@@ -1,16 +1,18 @@
 Bootloader:
-Implemented Power-On Self-Test (POST) error checking
-Added support for booting multiple operating systems from a single bootloader
-Introduced Rescue Mode, which activates if POST fails, replacing the previous kernel-based maintenance mode
-Various bug fixes and stability improvements
+Introduced POST (Power-On Self-Test) error checking
+Enabled Multiboot Capabilities, allowing booting of multiple operating systems from a single bootloader
+Added Rescue Mode in case of POST failure, replacing the maintenance mode previously found in the Kernel
+General bug fixes and improvements
 
 Main OS:
-Removed maintenance mode due to security concerns and performance issues
-Added Virtual RAM Disk to improve overall system efficiency (though it has minimal impact on users directly)
+Removed maintenance mode due to security concerns and functionality issues
+Integrated Virtual Ram Disk, improving the operating system flow (minimal impact for users)
 
 Other Changes:
-Added More Applications To Manifest
-Improved ReAgent functionality and made it compatible with the following command structure:
-Usage: ReAgent [reset, restore2, restore, repair]
+Expanded the application store with additional apps
+Streamlined Reagent tool, now fully compatible with the following commands: ReAgent [reset, restore2, restore, repair]
 
-General optimizations and refinements
+Bug Fixes:
+Resolved issues in the installation file that caused improper file path installations
+Fixed bugs that resulted in Kernel boot loops
+Addressed a security vulnerability that allowed username and password dumping through the maintenance terminal
