@@ -15,7 +15,7 @@ Introduced a dedicated Security Center, consolidating features like suspicious l
 
 Other Changes:
 Expanded the application store with additional apps
-Streamlined Reagent tool, now fully compatible with the following commands: ReAgent [reset, restore2, restore, repair]
+Streamlined Reagent tool, now fully compatible with the following commands: ReAgent [reset, restore, recover, repair]
 
 Bug Fixes:
 Resolved issues in the installation file that caused improper file path installations
