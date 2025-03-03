@@ -434,7 +434,7 @@ goto SKIPUPDATEPROCESS
 
 :installUpdate
 echo Installing update...
-start UpAgent.bat
+call UpAgent.bat 1
 exit /b
 
 :SKIPUPDATEPROCESS
@@ -1709,7 +1709,7 @@ echo.
 echo [33mINITIALIZING UPDATE AGENT[0m
 echo [33mDO NOT CLOSE THIS SCREEN[0m
 echo.
-start UpAgent.bat 
+call UpAgent.bat 1
 timeout /t 5 /nobreak >nul
 goto Breakpoint12321
 
