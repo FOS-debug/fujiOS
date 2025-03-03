@@ -7,15 +7,15 @@ General bug fixes and improvements
 Main OS:
 Removed maintenance mode due to security concerns and functionality issues
 Integrated Virtual Ram Disk, improving the operating system flow (minimal impact for users)
-
-Security:
-Upgraded virus database to enhance protection
-Added Data Leak Protection to help circumvent password dumping
-Introduced a dedicated Security Center, consolidating features like suspicious logins, antivirus scans, and credential changes
+Added an automatic backup system that creates a backup of all system files once per day on boot
+System Restore can now be used to restore these backups if needed using "ReAgent restore"
 
 Other Changes:
 Expanded the application store with additional apps
 Streamlined Reagent tool, now fully compatible with the following commands: ReAgent [reset, restore, recover, repair]
+Upgraded virus database to enhance protection
+Added Data Leak Protection to prevent password dumping
+Introduced a dedicated Security Center, consolidating features like suspicious logins, antivirus scans, and credential changes
 
 Bug Fixes:
 Resolved issues in the installation file that caused improper file path installations
