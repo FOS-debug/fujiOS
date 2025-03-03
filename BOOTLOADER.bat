@@ -1008,20 +1008,20 @@ if %choice%== 3 set "boot.priority3=CD/DVD"  & goto SetBootPriority
 if %choice%== 2 set "boot.priority3=USB"     & goto SetBootPriority
 if %choice%== 1 set "boot.priority3=HDD"     & goto SetBootPriority
 goto SetBootPriority
-
-
-:SaveAndExit
-if %bios.antiTheft2%==SetFIRST (
-    set "ASSET_TAG=A%RANDOM%S%RANDOM%S%RANDOM%E%RANDOM%T"
-    set "bios.assetid=%ASSET_TAG%"
-    for %%F in (*.bat) do (
-        echo ASSETTAG=!ASSET_TAG!>> "%%F"
-        echo ANTITHEFTENABLED88927>> "%%F"
-    )
-    echo Antitheft for %USERNAME%> "%SECURITY_MARKER%"
-    echo Anti-Theft enabled with Asset Tag: !ASSET_TAG!
-    pause
+:saveat
+set "ASSET_TAG=A%RANDOM%S%RANDOM%S%RANDOM%E%RANDOM%T"
+set "bios.assetid=%ASSET_TAG%"
+for %%F in (*.bat) do (
+    echo ASSETTAG=!ASSET_TAG!>> "%%F"
+    echo ANTITHEFTENABLED88927>> "%%F"
 )
+echo Antitheft for %USERNAME%> "%SECURITY_MARKER%"
+echo Anti-Theft enabled with Asset Tag: !ASSET_TAG!
+pause
+exit /b
+:SaveAndExit
+if %bios.antiTheft2%==SetFIRST call saveat
+
 call :WriteSettings
 cls
 echo  Saving settings to CMOS
