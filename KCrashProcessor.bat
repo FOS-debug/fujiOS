@@ -13,6 +13,7 @@ if "%crash%" == "1" (
 set "crash=1"
 call POST.bat
 if "%POST%"=="PASS" call BOOTLOADER.bat
+if "%POST%"=="SKIP" call BOOTLOADER.bat
 goto Coreloaading
 
 :Crash

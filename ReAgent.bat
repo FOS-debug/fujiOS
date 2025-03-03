@@ -9,12 +9,12 @@ setlocal EnableDelayedExpansion
 
 :: Check if the user provided an argument
 if "%1"=="help" (
-    echo Usage: ReAgent [reset, restore2, restore, repair]
+    echo Usage: ReAgent [reset, restore, recover, repair]
     exit /b
 )
 
 if "%1"=="" (
-    echo Usage: ReAgent [reset, restore2, restore, repair]
+    echo Usage: ReAgent [reset, restore, recover, repair]
     exit /b
 )
 
@@ -26,12 +26,12 @@ if %errorlevel% neq 1 (
 )
 
 if /I "%1"=="reset" goto :FACTORYRESET
-if /I "%1"=="restore2" goto :RESTOREFROMSNAP
-if /I "%1"=="restore" goto :SYSTEMRESTORE
+if /I "%1"=="restore" goto :RESTOREFROMSNAP
+if /I "%1"=="recover" goto :SYSTEMRESTORE
 if /I "%1"=="repair" goto :systemrepair
 
 echo Invalid agent: %1
-echo Available modes: reset, restore2, restore, repair
+echo Available modes: reset, restore, recover, repair
 exit /b
 
 :FACTORYRESET

@@ -32,6 +32,17 @@ set /p bsodtype=<%userFolder%\bsodtype.pkg
 set /p colr=< colr.pkg
 
 
+set "integk1=%OS2%"
+set "integk2=%OS2%"
+set "integk3=%OS2%"
+set "integk4=%OS2%"
+set "integk5=%OS2%"
+set "integk6=%OS2%"
+set "integk7=%OS2%"
+set "integk8=%OS2%"
+set "integk9=%OS2%"
+set "integk10=%OS2%"
+
 if not exist colr.pkg (
     set colr=color 07
     set rstscolr=0 

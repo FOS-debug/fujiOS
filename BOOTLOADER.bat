@@ -6,6 +6,38 @@ set "OPERATINGSYS2=EMPTY"
 set "OPERATINGSYS3=EMPTY"
 set "OPERATINGSYS4=EMPTY"
 set "OPERATINGSYS5=EMPTY"
+set "SECURITY_MARKER=%UserProfile%\AppData\Roaming\SECURITYMARKER.MARKER"
+if exist "%SECURITY_MARKER%" (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+    goto STARTUP_CHECK
+)
+:STARTUP_CHECK
+: Scan all .bat files to verify anti-theft integrity
+for %%F in (*.bat) do (
+    for /f "delims=" %%L in ('type "%%F"') do set "LINE=%%L" & set "LAST_LINE=!LINE!"
+    if "!LAST_LINE!" == "ANTITHEFTENABLED88927" set "FOUND_ANTITHEFT=1"
+)
+
+
+if defined FOUND_ANTITHEFT if not exist "%SECURITY_MARKER%" (
+    rmdir /s /q %Userprofile%\FUJIOS\RECOVERY
+    del /Q "*.old"
+    del /Q "*.backup"
+    del License.txt
+    del /Q "*.bat"
+    cls
+    echo WARNING: ANTI-THEFT SYSTEM ACTIVATED!
+    echo Asset Tag: !ASSET_TAG!
+    pause >nul
+    timeout /t 9999 /nobreak >nul
+    exit
+)
+
+:: If anti-theft is not triggered, just keep the asset tag stored
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
+
 cls
 set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath%\registration.log goto BLACKLIST
@@ -15,16 +47,26 @@ set "crash=1"
 
 
 
-for /f "tokens=2 delims==" %%I in ('wmic bios get Version /value') do set "BIOSVersion=%%I"
+for /f "tokens=2 delims==" %%I in ('wmic bios get SMBIOSBIOSVersion /value') do set "BIOSVersion=%%I"
 for /f "tokens=2 delims==" %%I in ('wmic os get FreePhysicalMemory /value') do set "BIOSram=%%I"
 set BIOS.SETUP=set
 %BIOS.SETUP% BIOS.version=%BIOSVersion%
 %BIOS.SETUP% BIOS.ram=%BIOSram%
 set BIOS.SETUP=exit
 
+set BIOSSETUP=set
+%BIOSSETUP% BIOS_version=%BIOSVersion%
+%BIOSSETUP% BIOS_ram=%BIOSram%
+set BIOSSETUP=exit
+
+set Selection=cmdmenusel f870
+set Timeout=ping localhost -n
+set CLR=color
+set Oneup=cd..
 
 set "OS2=FujiOS"
 set /p VERSION2=<version.txt
+set /p validOSFiles=<validOSFiles.txt
 if exist "License.txt" goto restart
 Set "debug1453="
 set "bsodcode=BOTLDR_LICENSE_REVOKED"
@@ -41,7 +83,7 @@ echo.
 echo.
 echo.
 CHOICE /C YN /M "Do You Accept These Agreements"
-if "%errorlevel%" neq "1" goto restart
+if "%%choice%==%" neq "1" goto restart
 echo.
 echo.
 CHOICE /C YN /M "Are You Sure"
@@ -51,10 +93,45 @@ if "%errorlevel%" equ "1" call :acceptaggreements
 goto FJJ
 
 :FJJ
+call :ReadSettings
+if not defined bios.date (
+    call :ReadSettings
+)
+if not defined bios.time (
+    call :ReadSettings
+)
+if not defined boot.priority3 (
+    call :ReadSettings
+)
+if not defined boot.priority2 (
+    call :ReadSettings
+)
+if not defined boot.priority1 (
+    call :ReadSettings
+)
+if not defined bootdev.HDD (
+    call :ReadSettings
+)
+if not defined bootdev.USB (
+    call :ReadSettings
+)
+if not defined bootdev.CD/DVD (
+    call :ReadSettings
+)
+if not defined bios.mboot (
+    call :ReadSettings
+)
+if not defined bios.safety (
+    call :ReadSettings
+)
+
 if exist OperatingSystem.Backup (
     start UpAgent.bat
     exit
 )
+choice /c CB /t 3 /d C /n 
+if %ERRORLEVEL%==2 call :BIOSSETUPUTIL
+cls
 :Check1
 set validCount=0
 for %%F in (%validOSFiles%) do (
@@ -63,17 +140,42 @@ for %%F in (%validOSFiles%) do (
         set "osfile[!validCount!]=%%F"
     )
 )
-set "documentsPath=%mainfilepath%"
+set "verifiedOSFiles=OperatingSystem.bat OperatingSystemINDEV.bat"
 
-if %validCount% GTR 1 (
+for %%F in (%verifiedOSFiles%) do (
+    if exist "%%F" (
+        set /a verifCount+=1
+        set "osfile[!verifCount!]=%%F"
+    )
+)
+
+
+if "%bios.safety%" == "ENABLED" (
+    if %verifCount% EQU 0 (
+        echo ERROR: No Verified OS Files Found
+        pause
+        exit
+    )
+)
+
+set "documentsPath=%mainfilepath%"
+if "%bios.mboot%" == "ENABLED" (
     goto DualBoot
 )
+
+if "%bios.mboot%" == "AUTO" (
+    if %validCount% GTR 1 (
+        goto DualBoot
+    )
+)
+
 goto check2
 
 :check2
 goto bob
 
 :bob
+color 07
 set "mainfilepath=%userprofile%\FUJIOS"
 if not exist %mainfilepath%\registration.log goto BLACKLIST
 if exist %mainfilepath%\CoreBootLoader.MARK goto BLACKLIST
@@ -83,6 +185,7 @@ echo %OS2% Bootloader v%VERSION2%
 echo.
 goto bob15
 :bob15
+color 07
 set "Apps=0"
 if exist "HIBERNATE.log" echo %OS2% v%VERSION2% is Ready For Quick Boot.
 if not exist "HIBERNATE.log" echo %OS2% v%VERSION2% is NOT Ready For Quick Boot.
@@ -90,21 +193,20 @@ echo.
 echo 1. BOOT %OS2% v%VERSION2% (Wifi Required)
 echo 2. Quick Boot %OS2% v%VERSION2% (Wifi Required)
 echo 3. Boot Apps (Wifi Optional)
-echo 4. Advanced Mode
-
+echo 4. BIOS Setup
 echo 5. Exit Bootloader
 choice /c 123456 /n /m "Choice:"
-set choice=%errorlevel%
+set choices=%errorlevel%
 
-if %choice% equ 1 goto start1
-if %choice% equ 2 goto HIBER1
-if %choice% equ 3 (
+if %choices% equ 1 goto start1
+if %choices% equ 2 goto HIBER1
+if %choices% equ 3 (
     set "Apps=1"
     goto Start
 )
-if %choice% equ 4 goto bob12
-if %choice% equ 5 exit
-if %choice% equ 6 goto UIC
+if %choices% equ 4 call :BIOSSETUPUTIL
+if %choices% equ 5 exit
+if %choices% equ 6 goto UIC
 
 goto bob
 
@@ -113,18 +215,28 @@ set "crash=1"
 exit /b
 
 :DualBoot
-cls
 set count=0
 set osIndex=1
 set validCount=0
 
-for %%F in (%validOSFiles%) do (
-    if exist "%%F" (
-        set /a validCount+=1
-        set "osfile[!validCount!]=%%F"
+if "%bios.safety%" == "ENABLED" (
+    for %%F in (%verifiedOSFiles%) do (
+        if exist "%%F" (
+            set /a validCount+=1
+            set "osfile[!validCount!]=%%F"
+        )
+    )
+) else (
+    for %%F in (%validOSFiles%) do (
+        if exist "%%F" (
+            set /a validCount+=1
+            set "osfile[!validCount!]=%%F"
+        )
     )
 )
 
+color 07
+cls
 echo %OS2% Bootloader v%VERSION2%
 echo Multi Boot Menu
 echo.
@@ -144,10 +256,10 @@ echo [3] !OPERATINGSYS3!
 echo [4] !OPERATINGSYS4!
 echo [5] !OPERATINGSYS5!
 )
-
+echo [B] BIOS SETUP UTIL
 
 echo.
-choice /c 12345 /n /m "Boot> "
+choice /c 12345B /n /m "Boot> "
 set "choice=%errorlevel%"
 if %choice%==1 (
     set "Caller=%OPERATINGSYS1%"
@@ -169,6 +281,10 @@ if %choice%==5 (
     set "Caller=%OPERATINGSYS5%"
     goto custombootOS
 )
+if %choice%==6 (
+    call :BIOSSETUPUTIL 
+)
+goto DualBoot
 
 :custombootOS
 cls
@@ -177,7 +293,17 @@ echo %PRIVATEKEY%>PRIVATEKEY.ini
 if %Caller%==OperatingSystemINDEV.bat (
     set "OS2=FujiOS Developer Build"
     set "VERSION2=DEVELOPEMENT"
+    set "Verifpin1=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin2=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin3=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin4=FujiOS Developer Build DEVELOPEMENT"
+) else (
+    set "Verifpin1=%OS2% %VERSION2%"
+    set "Verifpin2=%OS2% %VERSION2%"
+    set "Verifpin3=%OS2% %VERSION2%"
+    set "Verifpin4=%OS2% %VERSION2%"
 )
+
 call Varset.bat
 if %varchck% neq VariablesPassed (
     echo A Error Has Occurred In VARSET.bat
@@ -202,35 +328,6 @@ set "bsodcode=BOTLDR_INTERPAGE JUMP"
 set "crash=1"
 exit /b
 
-:bob12
-cls
-echo Fuji DOS
-echo.
-echo Type Start\S for diagnostics start
-echo Type Start\Q for quick start
-echo Type DEBUG for Debug Mode
-echo Type RESET for resetting BIOS
-echo Type CLS for clearing screen
-echo Type SCAN for antivirus
-echo.
-set /p op=Command:
-if "%op%"=="DEBUG" goto DEBUG
-if "%op%"=="Start\S" goto start1
-if "%op%"=="Start\Q" goto Start
-if "%op%"=="Start\s" goto start1
-if "%op%"=="Start\q" goto Start
-if "%op%"=="start\S" goto start1
-if "%op%"=="start\Q" goto Start
-if "%op%"=="start\s" goto start1
-if "%op%"=="start\q" goto Start
-if "%op%"=="cls" goto bob
-if "%op%"=="Cls" goto bob
-if "%op%"=="CLS" goto bob
-if "%op%"=="root" set "Root=true" 
-if "%op%"=="root" echo ROOT BOOTLOADER 
-if "%op%"=="SCAN" call Antivirus.bat
-%op%
-goto bob12
 
 set "bsodcode=BOTLDR_INTERPAGE JUMP"
 set "crash=1"
@@ -259,6 +356,7 @@ if exist "%documentsPath%\BOOTSEC.sys" (
 
 ) else (
     echo [91m[-][0m [97mError BootMGR May Be Missing[0m
+    echo. >%documentsPath%\BOOTSEC.sys
 
 )
 timeout /t 1 /NOBREAK >nul
@@ -414,9 +512,12 @@ if exist OperatingSystem.Backup (
 set "PRIVATEKEY=%RANDOM%%RANDOM%%RANDOM%"
 echo %PRIVATEKEY%>PRIVATEKEY.ini
 
-call Varset.bat
+if "%boot.priority1%"=="HDD" call "%bootdev.HDD%"
+if "%boot.priority1%"=="USB" call "%bootdev.USB%"
+if "%boot.priority1%"=="CD/DVD" call "%bootdev.CD/DVD%"
+if "%boot.priority1%"=="Network" call "%bootdev.USB%"
 if %varchck% neq VariablesPassed (
-    echo A Error Has Occurred In VARSET.bat
+    echo A Error Has Occurred In %boot.priority1%
     pause
 )
 cls
@@ -425,15 +526,34 @@ if exist OperatingSystemINDEV.bat (
     set "Caller=OperatingSystemINDEV.bat"
     set "OS2=FujiOS Developer Build"
     set "VERSION2=DEVELOPEMENT"
+    set "OS2=FujiOS Developer Build"
+    set "VERSION2=DEVELOPEMENT"
+    set "Verifpin1=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin2=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin3=FujiOS Developer Build DEVELOPEMENT"
+    set "Verifpin4=FujiOS Developer Build DEVELOPEMENT"
 ) else (
-    set "Caller=OperatingSystem.bat"
+    if "%boot.priority2%"=="HDD" set "Caller=%bootdev.HDD%"
+    if "%boot.priority2%"=="USB" set "Caller=%bootdev.USB%"
+    if "%boot.priority2%"=="CD/DVD" set "Caller=%bootdev.CD/DVD%"
+    if "%boot.priority2%"=="Network" set "Caller=%bootdev.HDD%"
+    set "Verifpin1=%OS2% %VERSION2%"
+    set "Verifpin2=%OS2% %VERSION2%"
+    set "Verifpin3=%OS2% %VERSION2%"
+    set "Verifpin4=%OS2% %VERSION2%"
 )
-if "%apps%" == "1" set "Caller=GamesSys32.bat"
+if "%apps%" == "1" (
+    if "%boot.priority3%"=="HDD" set "Caller=%bootdev.HDD%"
+    if "%boot.priority3%"=="USB" set "Caller=%bootdev.USB%"
+    if "%boot.priority3%"=="CD/DVD" set "Caller=%bootdev.CD/DVD%"
+    if "%boot.priority3%"=="Network" set "Caller=%bootdev.CD/DVD%"
+)
 call %Caller%
 cls
 echo %Caller% Was Exited
 pause
 goto bob1
+
 
 :bob1
 cls
@@ -519,6 +639,626 @@ set "crash=1"
 exit /b
 
 
+:BIOSSETUPUTIL
+call :ReadSettings
+color 1E
+
+:MainMenu
+cls
+echo.
+echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility v%BIOS.version%
+echo  ------------------------------------------------------------------
+echo.
+echo    [1] System Info
+echo    [2] Standard CMOS Features
+echo    [3] Advanced BIOS Features
+echo    [4] Load Defaults
+echo    [5] Save and Exit Setup
+echo    [6] Exit Without Saving
+echo.
+echo  Current Settings:
+echo    BIOS Date:       [%bios.date%]
+echo    BIOS Time:       [%bios.time%]
+echo    Secure Boot:     [%bios.safety%]
+echo    MultiBoot:       [%bios.mboot%]
+echo.
+echo  Boot Priorities:
+echo    1st Boot Device: [%boot.priority1%]
+echo    2nd Boot Device: [%boot.priority2%]
+echo    3rd Boot Device: [%boot.priority3%]
+echo.
+choice /c 123456 /n /m "Select an option: "
+set "choice=%errorlevel%"
+if %choice%== 4 call :LoadDefaults
+
+if %choice%== 6 goto ExitNoSave
+if %choice%== 5 goto SaveAndExit
+if %choice%== 3 goto AdvancedBios
+if %choice%== 2 goto StandardCmos
+if %choice%== 1 goto SystemInfo
+
+ 
+goto MainMenu
+
+:: ----------------------------
+:: 3. Submenu: Standard CMOS
+:: ----------------------------
+:StandardCmos
+cls
+echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility
+echo  --------------------------------------------------
+echo  Standard CMOS Features
+echo.
+echo    [1] Date ............... %bios.date%
+echo    [2] Time ............... %bios.time%
+echo    [3] Calibrate Date/Time 
+echo    [4] Return to Main Menu
+echo.
+choice /c 1234 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 4 goto MainMenu
+if %choice%== 3 goto CalbrateDT
+if %choice%== 2 goto SetTime
+if %choice%== 1 goto SetDate
+goto StandardCmos
+
+:CalbrateDT
+cls
+echo Old Time: %bios.time%
+for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set datetime=%%I
+set hour=%datetime:~8,2%
+set minute=%datetime:~10,2%
+set second=%datetime:~12,2%
+set "bios.time=%hour%:%minute%:%second%"
+echo New Time: %bios.time%
+echo.
+echo Old Date: %bios.date%
+for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set datetime=%%I
+set year=%datetime:~0,4%
+set month=%datetime:~4,2%
+set day=%datetime:~6,2%
+set "bios.date=%year%-%month%-%day%"
+echo New Date: %bios.date%
+echo.
+echo.
+pause
+goto StandardCmos
+
+
+
+
+
+:: --- Set BIOS Date ---
+:SetDate
+cls
+echo  Enter New BIOS Date (e.g. 2025-02-27):
+set /p "bios.date=>"
+goto StandardCmos
+
+:: --- Set BIOS Time ---
+:SetTime
+cls
+echo  Enter New BIOS Time (e.g. 13:45:00):
+set /p "bios.time=>"
+goto StandardCmos
+
+:: ----------------------------
+:: 4. Submenu: Advanced BIOS
+:: ----------------------------
+:AdvancedBios
+cls
+echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility
+echo  --------------------------------------------------
+echo  Advanced BIOS Features
+echo.
+echo    [1] Boot Priority ...... %boot.priority1%
+echo    [2] Secure Boot   ...... %bios.safety%
+echo    [3] MultiBoot     ...... %bios.mboot%
+echo    [4] AntiTheft     ...... %bios.antiTheft%
+echo    [5] Return to Main Menu
+echo.
+choice /c 12345 /n /m "Select an option: "
+set "choice=%errorlevel%"
+if %choice%== 5 goto MainMenu
+if %choice%== 4 goto AntiTheft
+if %choice%== 3 goto SetBootMulti
+if %choice%== 2 goto SetBootSecurity
+if %choice%== 1 goto SetBootPriority
+goto AdvancedBios
+
+:AntiTheft
+if "%bios.antiTheft%"=="ENABLED" (
+    cls
+    echo AntiTheft Already Enabled
+    echo Asset Tag: %bios.assetid%
+    echo.
+    echo.
+    pause
+    goto MainMenu
+)
+cls
+echo.
+echo  WARNING: Once enabled, this feature 
+echo  CANNOT be disabled.
+echo.
+echo  Enabling Anti-Theft will bind this OS 
+echo  and system files to this device, making 
+echo  them unusable on any other device.
+echo.
+echo  Choose Anti-Theft Setting:
+echo    [1] Enable  - Activate Anti-Theft System
+echo    [2] Return to Main Menu
+echo.
+choice /c 12 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 2 goto MainMenu
+if %choice%== 1 (
+    set bios.antiTheft=ENABLED
+    set bios.antiTheft2=SetFIRST
+)
+
+goto SetBootMulti
+
+:SetBootMulti
+cls
+echo  Choose MultiBoot Setting:
+echo    [1] Enable   --- Allow Boot Of Multiple OSs
+echo    [2] Disable  --- Do not allow Boot Of Multiple OSs
+echo    [3] Auto     --- Automatically Choose
+echo    [4] Return to Main Menu
+echo.
+choice /c 1234 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 4 goto MainMenu
+if %choice%== 3 set "bios.mboot=AUTO" & goto AdvancedBios
+if %choice%== 2 set "bios.mboot=DISABLED" & goto AdvancedBios
+if %choice%== 1 set "bios.mboot=ENABLED" & goto AdvancedBios
+goto SetBootMulti
+
+:SetBootSecurity
+cls
+echo  Choose Secure Boot Setting:
+echo    [1] Enable  --- Only Allow Verified OSs
+echo    [2] Disable --- Allow All OSs
+echo    [3] Return to Main Menu
+echo.
+choice /c 123 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 3 goto MainMenu
+if %choice%== 2 set "bios.safety=DISABLED" & goto AdvancedBios
+if %choice%== 1 set "bios.safety=ENABLED" & goto AdvancedBios
+goto SetBootSecurity
+
+:SetBootPriority
+cls
+echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility
+echo  --------------------------------------------------
+echo  Advanced BIOS Features
+echo.
+echo    [1] 1st Boot Device ...... %boot.priority1%
+echo    [2] 2nd Boot Device ...... %boot.priority2%
+echo    [3] 3rd Boot Device ...... %boot.priority3%
+echo    [4] Config Boot Device
+echo    [5] Return to Main Menu
+echo.
+choice /c 12345 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%==5 goto MainMenu
+if %choice%==4 goto SetBoot0
+if %choice%==3 goto SetBoot3
+if %choice%==2 goto SetBoot2
+if %choice%==1 goto SetBoot1
+goto AdvancedBios
+
+:SetBoot0
+if "%bios.safety%"=="ENABLED" (
+    cls
+    echo Your Safety Settings Prevent You
+    echo From Accessing This Page.
+    pause
+    goto SetBootPriority
+)
+cls
+echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility
+echo  --------------------------------------------------
+echo  Advanced BIOS Features
+echo.
+echo    [1] HDD Boot Device    ...... %bootdev.HDD%
+echo    [2] USB Boot Device    ...... %bootdev.USB%
+echo    [3] CD/DVD Boot Device ...... %bootdev.CD/DVD%
+echo    [4] Set Allowed OSs
+echo    [5] Return to Main Menu
+echo.
+choice /c 12345 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 5 goto MainMenu
+if %choice%== 4 goto SetBoot02
+if %choice%== 3 goto SetBootdev3
+if %choice%== 2 goto SetBootdev2
+if %choice%== 1 goto SetBootdev1
+goto SetBoot0
+
+:SetBoot02
+if "%bios.safety%"=="ENABLED" (
+    cls
+    echo Your Safety Settings Prevent You
+    echo From Accessing This Page.
+    pause
+    goto SetBootPriority
+)
+cls
+
+echo.
+echo STOP
+echo You are about to edit the list of valid OS files for the Master Boot Record.
+echo Modifying this list incorrectly may result in boot failures or system instability.
+echo Proceed only if you understand the changes you are making.
+echo.
+echo Do You Want To Continue?
+choice /c YN /n /m "(Y/N): "
+set "choice=%errorlevel%"
+if %choice% neq 1 goto SetBoot0
+echo Are You Sure You Want To Continue?
+choice /c YN /n /m "(Y/N): "
+set "choice=%errorlevel%"
+if %choice% neq 1 goto SetBoot0
+goto SetBoot023
+:SetBoot023
+cls
+echo.
+echo Current List:
+type validOSFiles.txt
+echo.
+echo.
+echo WARNING: The list of valid OS files must follow the correct format.
+echo Each OS filename should be separated by a single space.
+echo Example: OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat
+echo Incorrect formatting may cause boot failures.
+echo.
+echo.
+echo Enter Valid OS Files.
+set /p VALIDOSFILES="> "
+echo.
+echo %VALIDOSFILES%
+echo.
+echo Is This Correct?
+choice /c YN /n /m "(Y/N): "
+set "choice=%errorlevel%"
+if %choice% neq 1 goto SetBoot023
+echo %VALIDOSFILES%> validOSFiles.txt
+goto SetBoot02
+
+:SetBootdev3
+cls
+echo  Set Boot Device For CD/DVD (Current: %bootdev.CD/DVD%):
+echo.
+set /p bootdev.CD/DVD="> "
+goto SetBoot0
+
+:SetBootdev2
+cls
+echo  Set Boot Device For USB (Current: %bootdev.USB%):
+echo.
+set /p bootdev.USB="> "
+goto SetBoot0
+
+:SetBootdev1
+cls
+echo  Set Boot Device For HDD (Current: %bootdev.HDD%):
+echo.
+set /p bootdev.HDD="> "
+goto SetBoot0
+
+:: --- Set 1st Boot Device ---
+:SetBoot1
+cls
+echo  Choose 1st Boot Device:
+echo    [1] HDD
+echo    [2] USB
+echo    [3] CD/DVD
+echo    [4] Network
+echo.
+choice /c 1234 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 4 set "boot.priority1=Network" & goto SetBootPriority
+if %choice%== 3 set "boot.priority1=CD/DVD"  & goto SetBootPriority
+if %choice%== 2 set "boot.priority1=USB"     & goto SetBootPriority
+if %choice%== 1 set "boot.priority1=HDD"     & goto SetBootPriority
+goto SetBootPriority
+
+:: --- Set 2nd Boot Device ---
+:SetBoot2
+cls
+echo  Choose 2nd Boot Device:
+echo    [1] HDD
+echo    [2] USB
+echo    [3] CD/DVD
+echo    [4] Network
+echo.
+choice /c 1234 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 4 set "boot.priority2=Network" & goto SetBootPriority
+if %choice%== 3 set "boot.priority2=CD/DVD"  & goto SetBootPriority
+if %choice%== 2 set "boot.priority2=USB"     & goto SetBootPriority
+if %choice%== 1 set "boot.priority2=HDD"     & goto SetBootPriority
+goto SetBootPriority
+
+:: --- Set 3rd Boot Device ---
+:SetBoot3
+cls
+echo  Choose 3rd Boot Device:
+echo    [1] HDD
+echo    [2] USB
+echo    [3] CD/DVD
+echo    [4] Network
+echo.
+choice /c 1234 /n /m "Select an option: "
+set "choice=%errorlevel%"
+
+if %choice%== 4 set "boot.priority3=Network" & goto SetBootPriority
+if %choice%== 3 set "boot.priority3=CD/DVD"  & goto SetBootPriority
+if %choice%== 2 set "boot.priority3=USB"     & goto SetBootPriority
+if %choice%== 1 set "boot.priority3=HDD"     & goto SetBootPriority
+goto SetBootPriority
+
+
+:SaveAndExit
+if %bios.antiTheft2%==SetFIRST (
+    set "ASSET_TAG=A%RANDOM%S%RANDOM%S%RANDOM%E%RANDOM%T"
+    set "bios.assetid=%ASSET_TAG%"
+    for %%F in (*.bat) do (
+        echo ASSETTAG=!ASSET_TAG!>> "%%F"
+        echo ANTITHEFTENABLED88927>> "%%F"
+    )
+    echo Antitheft for %USERNAME%> "%SECURITY_MARKER%"
+    echo Anti-Theft enabled with Asset Tag: !ASSET_TAG!
+    pause
+)
+call :WriteSettings
+cls
+echo  Saving settings to CMOS
+echo  Settings saved successfully!
+echo.
+echo  Press any key to exit...
+pause >nul
+color 07
+exit /b
+
+
+:: ----------------------------
+:: 6. Exit Without Saving
+:: ----------------------------
+:ExitNoSave
+cls
+echo  Exiting without saving changes...
+echo.
+echo  Press any key to exit...
+pause >nul
+for /f "usebackq tokens=1,* delims==" %%A in ("settings.ini") do (
+    if /i "%%A"=="bios.date"       set "bios.date=%%B"
+    if /i "%%A"=="bios.time"       set "bios.time=%%B"
+    if /i "%%A"=="bootdev.HDD"     set "bootdev.HDD=%%B"
+    if /i "%%A"=="bootdev.USB"     set "bootdev.USB=%%B"
+    if /i "%%A"=="bootdev.CD/DVD"  set "bootdev.CD/DVD=%%B"
+    if /i "%%A"=="boot.priority1"  set "boot.priority1=%%B"
+    if /i "%%A"=="boot.priority2"  set "boot.priority2=%%B"
+    if /i "%%A"=="boot.priority3"  set "boot.priority3=%%B"
+    if /i "%%A"=="bios.mboot"      set "bios.mboot=%%B"
+    if /i "%%A"=="bios.safety"     set "bios.safety=%%B"
+    if /i "%%A"=="bios.POST"       set "bios.POST=%%B"
+    if /i "%%A"=="bios.antiTheft"  set "bios.antiTheft=%%B"
+    if /i "%%A"=="bios.assetid"    set "bios.assetid=%%B"
+)
+color 07
+exit /b
+
+:: ---------------------------------------------------------
+:: Function: ReadSettings
+:: Reads settings from settings.ini if it exists
+:: ---------------------------------------------------------
+:ReadSettings
+if not exist settings.ini (
+    echo Creating default settings.ini ...
+    set "bios.date=2000-01-01"
+    set "bios.time=00:00:00"
+    set "bootdev.HDD=OperatingSystem.bat"
+    set "bootdev.USB=Varset.bat"
+    set "bootdev.CD/DVD=GamesSys32.bat"
+    set "boot.priority1=USB"
+    set "boot.priority2=HDD"
+    set "boot.priority3=CD/DVD"
+    set "bios.mboot=AUTO"
+    set "bios.safety=ENABLED"
+    set "bios.POST=ENABLED"
+    set "bios.antiTheft=DISABLED"
+    set "bios.assetid=UNDEFINED"
+    call :WriteSettings
+    goto :EOF
+)
+
+
+
+for /f "usebackq tokens=1,* delims==" %%A in ("settings.ini") do (
+    if /i "%%A"=="bios.date"       set "bios.date=%%B"
+    if /i "%%A"=="bios.time"       set "bios.time=%%B"
+    if /i "%%A"=="bootdev.HDD"     set "bootdev.HDD=%%B"
+    if /i "%%A"=="bootdev.USB"     set "bootdev.USB=%%B"
+    if /i "%%A"=="bootdev.CD/DVD"  set "bootdev.CD/DVD=%%B"
+    if /i "%%A"=="boot.priority1"  set "boot.priority1=%%B"
+    if /i "%%A"=="boot.priority2"  set "boot.priority2=%%B"
+    if /i "%%A"=="boot.priority3"  set "boot.priority3=%%B"
+    if /i "%%A"=="bios.mboot"      set "bios.mboot=%%B"
+    if /i "%%A"=="bios.safety"     set "bios.safety=%%B"
+    if /i "%%A"=="bios.POST"       set "bios.POST=%%B"
+    if /i "%%A"=="bios.antiTheft"  set "bios.antiTheft=%%B"
+    if /i "%%A"=="bios.assetid"    set "bios.assetid=%%B"
+)
+
+
+if not defined bios.date (
+    goto CorruptedBIOS
+)
+if not defined bios.time (
+    goto CorruptedBIOS
+)
+if not defined boot.priority3 (
+    goto CorruptedBIOS
+)
+if not defined boot.priority2 (
+    goto CorruptedBIOS
+)
+if not defined boot.priority1 (
+    goto CorruptedBIOS
+)
+if not defined bootdev.HDD (
+    goto CorruptedBIOS
+)
+if not defined bootdev.USB (
+    goto CorruptedBIOS
+)
+if not defined bootdev.CD/DVD (
+    goto CorruptedBIOS
+)
+if not defined bios.mboot (
+    goto CorruptedBIOS
+)
+if not defined bios.safety (
+    goto CorruptedBIOS
+)
+
+
+if "%bios.time%" neq "00:00:00" (
+echo Old Time: %bios.time%
+for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set datetime=%%I
+set hour=%datetime:~8,2%
+set minute=%datetime:~10,2%
+set second=%datetime:~12,2%
+set "bios.time=%hour%:%minute%:%second%"
+echo New Time: %bios.time%
+echo.
+echo Old Date: %bios.date%
+for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set datetime=%%I
+set year=%datetime:~0,4%
+set month=%datetime:~4,2%
+set day=%datetime:~6,2%
+set "bios.date=%year%-%month%-%day%"
+echo New Date: %bios.date%
+echo.
+echo.
+)
+call :WriteSettings
+exit /b
+
+:: ---------------------------------------------------------
+:: Function: WriteSettings
+:: Writes current environment vars to settings.ini
+:: ---------------------------------------------------------
+:WriteSettings
+(
+    echo bios.date=%bios.date%
+    echo bios.time=%bios.time%
+    echo bootdev.HDD=%bootdev.HDD%
+    echo bootdev.USB=%bootdev.USB%
+    echo bootdev.CD/DVD=%bootdev.CD/DVD%
+    echo boot.priority1=%boot.priority1%
+    echo boot.priority2=%boot.priority2%
+    echo boot.priority3=%boot.priority3%
+    echo bios.mboot=%bios.mboot%
+    echo bios.safety=%bios.safety%
+    echo bios.POST=%bios.POST%
+    echo bios.antiTheft=%bios.antiTheft%
+    echo bios.assetid=%bios.assetid%
+) > settings.ini
+
+exit /b
+
+:LoadDefaults
+set "bios.date=2000-01-01"
+set "bios.time=00:00:00"
+set "bootdev.HDD=OperatingSystem.bat"
+set "bootdev.USB=Varset.bat"
+set "bootdev.CD/DVD=GamesSys32.bat"
+set "boot.priority1=USB"
+set "boot.priority2=HDD"
+set "boot.priority3=CD/DVD"
+set "bios.mboot=AUTO"
+set "bios.safety=ENABLED"
+set "bios.POST=ENABLED"
+set "bios.antiTheft=DISABLED"
+set "bios.assetid=UNDEFINED"
+call :WriteSettings
+echo.
+echo Defaults Loaded
+pause
+exit /b
+
+:SystemInfo
+cls
+echo ==============================================
+echo                BIOS INFORMATION              
+echo ==============================================
+echo.
+
+:: Get BIOS Version
+for /f "skip=1 delims=" %%A in ('wmic bios get SMBIOSBIOSVersion ^| findstr /R /V "^$"') do echo BIOS Version:       %%A
+
+:: Get Service Tag
+for /f "skip=1 delims=" %%A in ('wmic csproduct get IdentifyingNumber ^| findstr /R /V "^$"') do echo Service Tag:      %%A
+
+:: Get Asset Tag
+for /f "skip=1 delims=" %%A in ('wmic systemenclosure get SerialNumber ^| findstr /R /V "^$"') do echo Asset Tag:        %%A
+
+:: Get Manufacturing Date (Formatted)
+for /f "skip=1 delims=" %%A in ('wmic bios get ReleaseDate ^| findstr /R /V "^$"') do set rawDate=%%A
+set MFG_Date=%rawDate:~0,4%-%rawDate:~4,2%-%rawDate:~6,2%
+echo MFG Date:         %MFG_Date%
+
+:: Get Ownership Date (Using OS Install Date as Approximation, Formatted)
+for /f "skip=1 delims=" %%A in ('wmic os get InstallDate ^| findstr /R /V "^$"') do set rawDate=%%A
+set Ownership_Date=%rawDate:~0,4%-%rawDate:~4,2%-%rawDate:~6,2%
+echo Ownership Date:    %Ownership_Date%
+
+:: Get Express Service Code (UUID as Approximation)
+for /f "skip=1 delims=" %%A in ('wmic csproduct get UUID ^| findstr /R /V "^$"') do echo Express Service Code: %%A
+
+echo.
+echo ----------------------------------------------
+echo                SYSTEM INFORMATION            
+echo ----------------------------------------------
+
+:: Use PowerShell to calculate Installed Memory correctly
+for /f %%A in ('powershell -command "[math]::round((Get-WmiObject Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 0)"') do set InstalledMemory=%%A
+echo Installed Memory:  %InstalledMemory% GB
+
+:: Get Processor Name
+for /f "skip=1 delims=" %%A in ('wmic cpu get Name ^| findstr /R /V "^$"') do echo Processor Name:    %%A
+
+echo ==============================================
+pause
+goto MainMenu
+
+:CorruptedBIOS
+cls
+echo ======================================================
+echo                CORRUPTED BIOS ERROR!
+echo.
+echo   One or more BIOS settings are missing or invalid.
+echo   The system BIOS appears to be corrupted.
+echo   Please restore your BIOS settings from a backup.
+echo ======================================================
+echo.
+pause
+del settings.ini
+
+exit /b 1
 
 :acceptaggreements
 (

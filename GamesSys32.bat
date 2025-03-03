@@ -452,6 +452,37 @@ if "%SafetyWarning%"=="Yes" (
     choice /c yn /n /m "Proceed? [Y/N] "
     if errorlevel 2 goto store_manage
 )
+set "riskyCommands=del format erase shutdown rmdir reg delete vssadmin taskkill powershell certutil"
+
+:: Scan for risky commands
+set "foundCommands="
+for %%C in (%riskyCommands%) do (
+    findstr /I /C:"%%C " "%Appfolder%\%pkgName%.cmd" >nul && (
+        set "foundCommands=!foundCommands! %%C"
+    )
+)
+
+:: If risky commands are found, prompt user
+if defined foundCommands (
+    cls
+    echo Safety Warning:
+    echo [33mAre you sure you want to run this program?
+    echo By clicking Yes you are allowing it to 
+    echo execute the following commands:[97m
+    echo.
+
+    :: Display the risky commands in a list
+    setlocal enabledelayedexpansion
+    for %%I in (!foundCommands!) do (
+        echo %%I
+    )
+    echo.
+
+    timeout /t 5 /nobreak >nul
+    choice /c yn /n /m "Proceed? [Y/N] "
+    if errorlevel 2 goto store_manage
+)
+
 goto start_app
 :start_app
 cls

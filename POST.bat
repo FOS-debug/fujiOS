@@ -1,24 +1,32 @@
 @echo off
+for /f "usebackq tokens=1,* delims==" %%A in ("settings.ini") do (
+    if /i "%%A"=="bios.date"       set "bios.date=%%B"
+    if /i "%%A"=="bios.time"       set "bios.time=%%B"
+    if /i "%%A"=="bootdev.HDD"     set "bootdev.HDD=%%B"
+    if /i "%%A"=="bootdev.USB"     set "bootdev.USB=%%B"
+    if /i "%%A"=="bootdev.CD/DVD"  set "bootdev.CD/DVD=%%B"
+    if /i "%%A"=="boot.priority1"  set "boot.priority1=%%B"
+    if /i "%%A"=="boot.priority2"  set "boot.priority2=%%B"
+    if /i "%%A"=="boot.priority3"  set "boot.priority3=%%B"
+    if /i "%%A"=="bios.mboot"      set "bios.mboot=%%B"
+    if /i "%%A"=="bios.safety"     set "bios.safety=%%B"
+    if /i "%%A"=="bios.POST"       set "bios.POST=%%B"
+
+)
+if "%bios.POST%"=="DISABLED" goto SKIP
+
 
 :restart
 cls
 set "error=0"
 set "errors=0"
-
-set "validOSFiles=OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat Kernel.bat"
+if not exist validOSFiles.txt (
+    echo OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat Kernel.bat> validOSFiles.txt
+)
+set /p validOSFiles=<validOSFiles.txt
 set validCount=0
 set /p foscd=<icd.ini
-< settings.ini (
-  set /p Pin1=
-  set /p Pin2=
-  set /p Pin3=
-  set /p Pin4=
-  set /p Pin5=
-  set /p Pin6=
-  set /p Pin7=
-  set /p Pin8=
-  set /p PinVerif=
-)
+
 
 for %%F in (%validOSFiles%) do (
     if exist "%%F" (
@@ -63,12 +71,6 @@ if not exist BOOTLOADER.bat (
 
 set "error=0"
 
-if "%PinVerif%" neq "01000110.01001111.01010011" (
-    set "foscd=PIN.ERROR"
-    set "error=1"
-)
-
-
 if "%foscd%" neq "1121" (
     echo [ERROR] Pins not set. Please run setup program.
     set "error=1"
@@ -101,18 +103,15 @@ if "%errors%" equ "0" (
 timeout /t 3 /nobreak >nul
 exit /b
 
+:SKIP
+if not exist validOSFiles.txt (
+    echo OperatingSystem.bat OperatingSystem1.bat OperatingSystem3.bat OperatingSystem4.bat OperatingSystemINDEV.bat Kernel.bat> validOSFiles.txt
+)
+set /p validOSFiles=<validOSFiles.txt
+set "POST=SKIP"
+exit /b
+
 
 :SetupBIOS
-(
-  echo 0
-  echo 0
-  echo 0
-  echo 0
-  echo 1
-  echo 1
-  echo 1
-  echo 1
-  echo 01000110.01001111.01010011
-) > settings.ini
 echo 1121>icd.ini
 goto restart

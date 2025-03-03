@@ -1,6 +1,79 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
+set "SECURITY_MARKER=%UserProfile%\AppData\Roaming\SECURITYMARKER.MARKER"
+if exist "%SECURITY_MARKER%" (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+    goto STARTUP_CHECK
+)
+:STARTUP_CHECK
+: Scan all .bat files to verify anti-theft integrity
+for %%F in (*.bat) do (
+    for /f "delims=" %%L in ('type "%%F"') do set "LINE=%%L" & set "LAST_LINE=!LINE!"
+    if "!LAST_LINE!" == "ANTITHEFTENABLED88927" set "FOUND_ANTITHEFT=1"
+)
+
+
+if defined FOUND_ANTITHEFT if not exist "%SECURITY_MARKER%" (
+    rmdir /s /q %Userprofile%\FUJIOS\RECOVERY
+    del /Q "*.old"
+    del /Q "*.backup"
+    del License.txt
+    del /Q "*.bat"
+    cls
+    echo WARNING: ANTI-THEFT SYSTEM ACTIVATED!
+    echo Asset Tag: !ASSET_TAG!
+    pause >nul
+    timeout /t 9999 /nobreak >nul
+    exit
+)
+
+:: If anti-theft is not triggered, just keep the asset tag stored
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
+
+set "integ1=%OS2%"
+set "integ2=%OS2%"
+set "integ3=%OS2%"
+set "integ4=%OS2%"
+set "integ5=%OS2%"
+set "integ6=%OS2%"
+set "integ7=%OS2%"
+set "integ8=%OS2%"
+set "integ9=%OS2%"
+set "integ10=%OS2%"
+if "%OS2%"=="FujiOS Developer Build" (
+    if "%VERSION2%" neq "DEVELOPEMENT" goto Integrity_Fail
+    if %Verifpin1% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
+    if %Verifpin2% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
+    if %Verifpin3% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
+    if %Verifpin4% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
+)
+if /I not "%integ1%"=="%integk1%" goto Integrity_Fail
+if /I not "%integ2%"=="%integk2%" goto Integrity_Fail
+if /I not "%integ3%"=="%integk3%" goto Integrity_Fail
+if /I not "%integ4%"=="%integk4%" goto Integrity_Fail
+if /I not "%integ5%"=="%integk5%" goto Integrity_Fail
+if /I not "%integ6%"=="%integk6%" goto Integrity_Fail
+if /I not "%integ7%"=="%integk7%" goto Integrity_Fail
+if /I not "%integ8%"=="%integk8%" goto Integrity_Fail
+if /I not "%integ9%"=="%integk9%" goto Integrity_Fail
+if /I not "%integ10%"=="%integk10%" goto Integrity_Fail
+
+goto SkipIntegrity_Fail
+:Integrity_Fail
+cls
+echo.
+echo.
+echo System Integrity check failed.
+echo System Tamper Detected
+echo Unauthorized Modification To System Files, Settings, Or Variables
+echo.
+echo.
+pause >nul
+exit /B
+:SkipIntegrity_Fail
 
 if not defined BIOS.ram (
                 echo Error loading RAM. 
@@ -23,6 +96,19 @@ if %BIOS.SETUP% NEQ exit (
                 exit
                 )
 
+if not defined VERSION2 (
+                echo Error loading Version Info. 
+                echo For FOS developers, make sure your bootloader meets the requirements.
+                pause >nul
+                exit
+                )
+
+if not defined OS2 (
+                echo Error loading OS Info. 
+                echo For FOS developers, make sure your bootloader meets the requirements.
+                pause >nul
+                exit
+                )
 
 set /p colr=< colr.pkg
 
@@ -78,8 +164,6 @@ set "BackupDir=%RestorePath%\backups"
 set "DATESTAMP=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%"
 set "TodayBackup=%BackupDir%\%DATESTAMP%"
 
-:: Debugging: Check the date and paths
-TITLE %DATESTAMP%
 
 :: Ensure backup directory exists
 if not exist "%BackupDir%" mkdir "%BackupDir%"
@@ -120,8 +204,7 @@ if exist "memory.tmp" (
 )
 set "attempts=0"
 if not exist PRIVATEKEY.ini (
-    set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
-    goto Crash
+    goto Integrity_Fail
 )
 
 :FULLBootupFujios
@@ -130,8 +213,7 @@ if exist PRIVATEKEY.ini (
    del PRIVATEKEY.ini
 )
 if %privatekey2% neq %PRIVATEKEY% (
-    set "bsodcode=PRIVATE_KEY_VERIF_FAIL"
-    goto Crash
+    goto Integrity_Fail
 )
 set /p UAK=<%mainfilepath%\UAK.pkg
 set "lastpage=Full Bootup Fujios"
@@ -313,6 +395,9 @@ if "%valid_password%"=="" (
     echo ERROR PASSWRD NOT SET
     pause
 )
+:: Define variables
+cls
+set UPDATE=0
 set SERVER_URL=https://fos-debug.github.io/fujiOS
 set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
 
@@ -323,21 +408,43 @@ for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSI
 if "%REMOTE_VERSION%"=="" (
     echo Unable to retrieve Version Info.
     pause
-    goto skipupdate
+    goto SKIPUPDATEPROCESS
 )
 
-if %REMOTE_VERSION% GTR %VERSION2% (
-    set UPDATE=1
-
-) else (
-    set UPDATE=0
-)
 if %REMOTE_VERSION% == HOTFIX (
     set UPDATE=2
 ) 
 
+:: Compare versions
+if "%REMOTE_VERSION%" NEQ "%VERSION2%" (
+    set UPDATE=1
+    echo.
+    echo %OS2% Update Agent v%VERSION2%
+    echo A new update is available. [Current version: v%VERSION2%, Latest version: v%REMOTE_VERSION%]
+    echo.
+    echo [I] Ignore Update  [Q] Queue Update  [U] Install Update
+    choice /c IQU /m "Choose an option: "
+    set "choice=%errorlevel%"
+    if %choice%==3 goto installUpdate
+    if %choice%==2 goto queueUpdate
+    if %choice%==1 goto ignoreUpdate
+)
 
-:skipupdate
+:ignoreUpdate
+echo Update ignored.
+set "ignore=1"
+goto SKIPUPDATEPROCESS
+
+:queueUpdate
+echo Update queued for later.
+goto SKIPUPDATEPROCESS
+
+:installUpdate
+echo Installing update...
+start UpAgent.bat
+exit /b
+
+:SKIPUPDATEPROCESS
 set "lastpage=Disk Write Test"
 echo Performing write-protection test...
 echo %random% >>wtest.tmp
@@ -494,7 +601,6 @@ if "%VERSION2%"=="DEVELOPEMENT" goto MEMORYWRITETST
 
 set "behindb=%REMOTE_VERSION%"
 set /a behindb-=%VERSION2%
-if %behindb% geq 10 call :updateq
 
 if "%REMOTE_VERSION%" neq "%VERSION2%" (
     if "%UPDATE%"=="2" goto Updateing
@@ -695,7 +801,7 @@ if "%levelid%" neq "5" set "levelpsw=Not Set"
 if "%levelpsw%" neq "M1" set "levelid=Not Set"
 echo [92m[+][0m [0mCredentials Accepted[0m
 ping localhost -n 2 >nul
-goto GIRT
+goto File_Manager
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -716,7 +822,6 @@ if exist changelog.txt (
 ) else (
     echo Failed to download the changelog.
 )
-
 del changelog.txt
 pause
 goto File_Manager
@@ -815,11 +920,6 @@ if %update%==1 (
     echo.
 )
 
-if "%VERSION2%" NEQ "DEVELOPEMENT" (
-    if %behindb% geq 5 echo [31m Please Update ASAP! [0m
-    if %behindb% geq 9 echo [31m FujiOS Will Automatically Update Soon [0m
-)
-
 if "%FirewallStatus%" equ "[31mNOT COMPLETED[0m" ( 
     echo.
     echo Make Sure To Complete Security Checklist
@@ -841,12 +941,13 @@ if %update% neq 0 (
 ) else (
     echo 07. Settings
 )
+echo 08. Changelog
 if "%OS2%"=="FujiOS Developer Build" (
-    echo 08. Developer Tools*
+    echo 09. Developer Tools*
 ) else (
-    echo 08. EMPTY
+    echo 09. EMPTY
 )
-echo 09. Shutdown Menu
+echo 10. Shutdown Menu
 echo ==================================
 echo Items Marked With * Should 
 echo be handled with care. If 
@@ -861,10 +962,58 @@ if %Inpu%==4 goto Antivirus
 if %Inpu%==5 call GamesSys32.bat
 if %Inpu%==6 goto FujiDriveTools
 if %Inpu%==7 goto FUJISETTINGS
-if %Inpu%==9 goto SHUTDOWNMENU121
-if %Inpu%==8 goto devtools
+if %Inpu%==8 goto GIRT
+if %Inpu%==9 goto devtools
+if %Inpu%==10 goto SHUTDOWNMENU121
+if %Inpu%==cmd goto cmdterminalinit
 
 goto File3242
+
+
+:cmdterminalinit
+cls
+echo %OS2% [Version %VERSION2%]
+echo (c) PTIe Corporation.
+echo.
+goto cmdterminalloop
+:cmdterminalloop
+:Check_Integrity
+:: Check that OS2 remains unchanged
+if /I not "%OS2%"=="%integ1%" goto Integrity_Fail
+:: Check that all integrity variables are equal
+if /I not "%integ1%"=="%integ2%" goto Integrity_Fail
+if /I not "%integ2%"=="%integ3%" goto Integrity_Fail
+if /I not "%integ3%"=="%integ4%" goto Integrity_Fail
+if /I not "%integ4%"=="%integ5%" goto Integrity_Fail
+if /I not "%integ5%"=="%integ6%" goto Integrity_Fail
+if /I not "%integ6%"=="%integ7%" goto Integrity_Fail
+if /I not "%integ7%"=="%integ8%" goto Integrity_Fail
+if /I not "%integ8%"=="%integ9%" goto Integrity_Fail
+if /I not "%integ9%"=="%integ10%" goto Integrity_Fail
+set /p userInput="%OS2% v%VERSION2%~> "
+
+:: Convert input to lowercase and check for "goto"
+echo "!userInput!" | findstr /I "goto" >nul
+if %errorlevel%==0 if /I not "%OS2%"=="FujiOS Developer Build" (
+    echo ERROR: GOTO command is restricted on this OS.
+    goto cmdterminalloop
+)
+
+
+
+echo "!userInput!" | findstr /I "exit" >nul
+if %errorlevel%==0 (
+    goto File_Manager
+)
+
+echo "!userInput!" | findstr /I "reset" >nul
+if %errorlevel%==0 (
+    goto cmdterminalinit
+)
+
+:: Execute the command
+!userInput!
+goto cmdterminalloop
 
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1316,7 +1465,7 @@ set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
-ReAgent restore2
+ReAgent restore
 exit /b
 
 
@@ -1368,7 +1517,7 @@ set "bsodcode=REAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Recovery Environment"
 goto Crash
 )
-ReAgent restore
+ReAgent recover
 exit /b
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1693,7 +1842,7 @@ if "%bsodcode%"=="FUJI_CORRUPT_ERR" goto ERR16
 echo.
 pause
 set "bsodcode="
-goto FULLBootupFujios
+goto :EOF
 
 
 
@@ -1826,7 +1975,7 @@ echo =============================
 echo.
 echo Options
 echo 01. Factory Reset
-echo 02. Restore From Update
+echo 02. recover From Update
 echo 03. Repair Files
 echo 04. Restore From Snapshot
 echo 05. Back
