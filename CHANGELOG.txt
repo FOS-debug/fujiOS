@@ -1,9 +1,8 @@
 Bootloader:
 Introduced POST (Power-On Self-Test) error checking
-Enabled Multiboot Capabilities, allowing booting of two operating systems from a single bootloader
+Enabled Multiboot Capabilities, allowing booting of Multiple operating systems from a single bootloader
 Added Rescue Mode in case of POST failure, replacing the maintenance mode previously found in the Kernel
 Added Advanced BIOS Settings for greater system customization
-General bug fixes and improvements
 
 Main OS:
 Removed maintenance mode due to security concerns and functionality issues
