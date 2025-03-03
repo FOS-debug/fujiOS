@@ -2,6 +2,7 @@ Bootloader:
 Introduced POST (Power-On Self-Test) error checking
 Enabled Multiboot Capabilities, allowing booting of two operating systems from a single bootloader
 Added Rescue Mode in case of POST failure, replacing the maintenance mode previously found in the Kernel
+Added Advanced BIOS Settings for greater system customization
 General bug fixes and improvements
 
 Main OS:
@@ -9,6 +10,7 @@ Removed maintenance mode due to security concerns and functionality issues
 Integrated Virtual Ram Disk, improving the operating system flow (minimal impact for users)
 Added an automatic backup system that creates a backup of all system files once per day on boot
 System Restore can now be used to restore these backups if needed using "ReAgent restore"
+Implemented an Anti-Theft System to enhance device security
 
 Other Changes:
 Expanded the application store with additional apps
