@@ -6,6 +6,7 @@ set "OPERATINGSYS2=EMPTY"
 set "OPERATINGSYS3=EMPTY"
 set "OPERATINGSYS4=EMPTY"
 set "OPERATINGSYS5=EMPTY"
+
 set "SECURITY_MARKER=%UserProfile%\AppData\Roaming\SECURITYMARKER.MARKER"
 if exist "%SECURITY_MARKER%" (
     for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
@@ -644,6 +645,8 @@ call :ReadSettings
 color 1E
 
 :MainMenu
+set "bios.antiTheft2=NONE"
+
 cls
 echo.
 echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility v%BIOS.version%
@@ -1020,6 +1023,8 @@ echo Anti-Theft enabled with Asset Tag: !ASSET_TAG!
 pause
 exit /b
 :SaveAndExit
+echo %bios.antiTheft2%
+pause
 if %bios.antiTheft2%==SetFIRST call saveat
 
 call :WriteSettings
