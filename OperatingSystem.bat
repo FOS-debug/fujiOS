@@ -43,13 +43,6 @@ set "integ7=%OS2%"
 set "integ8=%OS2%"
 set "integ9=%OS2%"
 set "integ10=%OS2%"
-if "%OS2%"=="FujiOS Developer Build" (
-    if "%VERSION2%" neq "DEVELOPEMENT" goto Integrity_Fail
-    if %Verifpin1% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
-    if %Verifpin2% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
-    if %Verifpin3% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
-    if %Verifpin4% neq FujiOS Developer Build DEVELOPEMENT goto Integrity_Fail
-)
 if /I not "%integ1%"=="%integk1%" goto Integrity_Fail
 if /I not "%integ2%"=="%integk2%" goto Integrity_Fail
 if /I not "%integ3%"=="%integk3%" goto Integrity_Fail
@@ -414,7 +407,7 @@ if "%REMOTE_VERSION%"=="" (
 if %REMOTE_VERSION% == HOTFIX (
     set UPDATE=2
 ) 
-
+if "%REMOTE_VERSION%" EQU "%VERSION2%" goto SKIPUPDATEPROCESS
 :: Compare versions
 if "%REMOTE_VERSION%" NEQ "%VERSION2%" (
     set UPDATE=1
