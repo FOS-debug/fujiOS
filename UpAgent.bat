@@ -9,8 +9,15 @@ set OLD_FILE=OperatingSystem.OLD
 set OLD_VERSION=Version.OLD
 set VERSION_FILE=Version.txt
 set /p CURRENT_VERSION=<Version.txt
+set /p VERSION2=<version.txt
+set FirstTime=1
+set FirstTime2=1
 
 
+if "%1"=="" (
+    goto EmergencyMode
+)
+:startupdatenshii
 
 
 echo. >> Update.log
@@ -349,6 +356,78 @@ echo %DATE% %TIME% PID:4268  %TPE% %MSG%
 set "TPE="
 set "MSG="
 exit /b 
+
+:EmergencyMode
+chcp 65001 >nul
+set SERVER_URL=https://fos-debug.github.io/fujiOS
+set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
+set RETRY_COUNT=0
+set MAX_RETRIES=3
+cls
+:: Display emergency mode activation
+echo ================================
+echo  FujiOS Emergency Update Mode 
+echo ================================
+echo Checking for critical updates...
+timeout /t 2 >nul
+
+:RETRY_FETCH
+:: Fetch remote version info
+for /f "delims=" %%A in ('curl -s "%REMOTE_VERSION_FILE%"') do set "REMOTE_VERSION=%%A"
+
+:: Check if we got a valid response
+if "%REMOTE_VERSION%"=="" (
+    set /a RETRY_COUNT+=1
+    echo [^^!] Unable to retrieve version info. Retrying... [%RETRY_COUNT%/%MAX_RETRIES%]
+    timeout /t 3 >nul
+    if %RETRY_COUNT% LSS %MAX_RETRIES% goto RETRY_FETCH
+    echo [X] Update server unreachable.
+    echo [^^!] Please keep your device on. We will push an update as soon as possible.
+    if %FirstTime%==1 (
+        echo [*] Opening FujiTroubleshooter...
+        timeout /t 10 >nul
+        start FujiTroubleshooter.cmd
+        set FirstTime=0
+    )
+    timeout /t 15 /nobreak >nul
+    goto EmergencyMode
+)
+
+
+
+:: Simulate checking process
+echo [✓] Successfully retrieved update information.
+timeout /t 1 >nul
+
+:: Compare versions
+if "%REMOTE_VERSION%" NEQ "%VERSION2%" (
+    echo Your Version: %VERSION2%
+    echo Latest Version: %REMOTE_VERSION%
+    echo -----------------------------------------
+    echo  GREAT NEWS^^! An update is available^^! 
+    echo -----------------------------------------
+    echo Your system will be updated shortly.
+    pause
+    timeout /t 5 /nobreak >nul
+    goto startupdatenshii
+) else (
+    echo -----------------------------------------
+    echo :( No updates available at the moment.
+    echo We know you're having trouble, and we’re probably working on a fix ASAP^^!
+    echo Please keep your system connected for automatic updates.
+    echo In the meantime, FujiTroubleshooter will attempt to assist you.
+    echo -----------------------------------------
+
+
+    timeout /t 10 >nul
+    if %FirstTime2%==1 (
+        start FujiTroubleshooter.cmd
+        set FirstTime2=0
+    )
+    timeout /t 15 /nobreak >nul
+    goto EmergencyMode
+)
+
 
 
 :TryAgainLater
