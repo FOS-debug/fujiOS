@@ -1,5 +1,58 @@
 @echo off
 setlocal enabledelayedexpansion 
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
+set "SECURITY_MARKER=%USERPROFILEB%\AppData\Roaming\SECURITYMARKER.MARKER"
+if exist "%SECURITY_MARKER%" (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+    goto STARTUP_CHECK
+)
+:STARTUP_CHECK
+: Scan all .bat files to verify anti-theft integrity
+for %%F in (*.bat) do (
+    for /f "delims=" %%L in ('type "%%F"') do set "LINE=%%L" & set "LAST_LINE=!LINE!"
+    if "!LAST_LINE!" == "ANTITHEFTENABLED88927" set "FOUND_ANTITHEFT=1"
+)
+
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
+
+if defined FOUND_ANTITHEFT if not exist "%SECURITY_MARKER%" (
+    rmdir /s /q %Userprofile%\FUJIOS\RECOVERY
+    del /Q "*.old"
+    del /Q "*.backup"
+    del License.txt
+    rmdir /s /q %Userprofile%\FUJIOS
+    echo del /Q "*.bat"> script.cmd
+    echo title FOS Anti-Theft Lock>> script.cmd
+    echo color 07>> script.cmd
+    echo :start>> script.cmd
+    echo cls>> script.cmd
+    echo echo FOS Anti-Theft system lock due to : Unrecognized Device>> script.cmd
+    echo echo.>> script.cmd
+    echo echo Platform Recovery Unavailable.>> script.cmd
+    echo echo.>> script.cmd
+    echo echo FOS Anti-Theft Asset Id: %ASSET_TAG%>> script.cmd
+    echo echo.>> script.cmd
+    echo pause >> script.cmd
+    echo goto start>> script.cmd
+    call script.cmd
+)
+
+:: If anti-theft is not triggered, just keep the asset tag stored
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
 
 :: Initialize default setting for safety warning if not already set
 
@@ -633,3 +686,10 @@ FOR /R "%Appfolder%" %%f IN (*.APPCONFIG) DO (
     ren "%%f" *.ini
 )
 exit /b
+
+
+exit
+exit
+exit
+exit
+exit

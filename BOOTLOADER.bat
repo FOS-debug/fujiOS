@@ -1,5 +1,17 @@
 
 @echo off
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
+
 set "caller="
 set "OPERATINGSYS1=EMPTY"
 set "OPERATINGSYS2=EMPTY"
@@ -7,7 +19,7 @@ set "OPERATINGSYS3=EMPTY"
 set "OPERATINGSYS4=EMPTY"
 set "OPERATINGSYS5=EMPTY"
 
-set "SECURITY_MARKER=%UserProfile%\AppData\Roaming\SECURITYMARKER.MARKER"
+set "SECURITY_MARKER=%USERPROFILEB%\AppData\Roaming\SECURITYMARKER.MARKER"
 if exist "%SECURITY_MARKER%" (
     for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
     goto STARTUP_CHECK
@@ -19,19 +31,30 @@ for %%F in (*.bat) do (
     if "!LAST_LINE!" == "ANTITHEFTENABLED88927" set "FOUND_ANTITHEFT=1"
 )
 
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
 
 if defined FOUND_ANTITHEFT if not exist "%SECURITY_MARKER%" (
     rmdir /s /q %Userprofile%\FUJIOS\RECOVERY
     del /Q "*.old"
     del /Q "*.backup"
     del License.txt
-    del /Q "*.bat"
-    cls
-    echo WARNING: ANTI-THEFT SYSTEM ACTIVATED!
-    echo Asset Tag: !ASSET_TAG!
-    pause >nul
-    timeout /t 9999 /nobreak >nul
-    exit
+    rmdir /s /q %Userprofile%\FUJIOS
+    echo del /Q "*.bat"> script.cmd
+    echo title FOS Anti-Theft Lock>> script.cmd
+    echo color 07>> script.cmd
+    echo :start>> script.cmd
+    echo cls>> script.cmd
+    echo echo FOS Anti-Theft system lock due to : Unrecognized Device>> script.cmd
+    echo echo.>> script.cmd
+    echo echo Platform Recovery Unavailable.>> script.cmd
+    echo echo.>> script.cmd
+    echo echo FOS Anti-Theft Asset Id: %ASSET_TAG%>> script.cmd
+    echo echo.>> script.cmd
+    echo pause >> script.cmd
+    echo goto start>> script.cmd
+    call script.cmd
 )
 
 :: If anti-theft is not triggered, just keep the asset tag stored
@@ -84,7 +107,7 @@ echo.
 echo.
 echo.
 CHOICE /C YN /M "Do You Accept These Agreements"
-if "%%choice%==%" neq "1" goto restart
+if "%errorlevel%" neq "1" goto restart
 echo.
 echo.
 CHOICE /C YN /M "Are You Sure"
@@ -465,20 +488,12 @@ set "mainfilepath=%userprofile%\FUJIOS"
 
 if not exist %mainfilepath%\CoreBootLoader.MARK goto cont7yfg73gf43uf
 echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -486,20 +501,12 @@ exit
 
 if exist %mainfilepath%\registration.log goto cont64ewr7tf843g7r74
 echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -568,20 +575,12 @@ exit /b
 
 :BLACKLIST
 echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -590,20 +589,12 @@ set "mainfilepath=%userprofile%\FUJIOS"
 
 if not exist %mainfilepath%\CoreBootLoader.MARK goto contt657874367496
 echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -611,20 +602,12 @@ exit
 
 if exist %mainfilepath%\registration.log goto cont435678436543
 echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -641,12 +624,11 @@ exit /b
 
 
 :BIOSSETUPUTIL
+set "bios.antiTheft2=NONE"
 call :ReadSettings
 color 1E
 
 :MainMenu
-set "bios.antiTheft2=NONE"
-
 cls
 echo.
 echo  Phoenix - Award WorkstationBIOS CMOS Setup Utility v%BIOS.version%
@@ -802,7 +784,7 @@ if %choice%== 1 (
     set bios.antiTheft2=SetFIRST
 )
 
-goto SetBootMulti
+goto MainMenu
 
 :SetBootMulti
 cls
@@ -819,7 +801,7 @@ if %choice%== 4 goto MainMenu
 if %choice%== 3 set "bios.mboot=AUTO" & goto AdvancedBios
 if %choice%== 2 set "bios.mboot=DISABLED" & goto AdvancedBios
 if %choice%== 1 set "bios.mboot=ENABLED" & goto AdvancedBios
-goto SetBootMulti
+goto MainMenu
 
 :SetBootSecurity
 cls
@@ -834,7 +816,7 @@ set "choice=%errorlevel%"
 if %choice%== 3 goto MainMenu
 if %choice%== 2 set "bios.safety=DISABLED" & goto AdvancedBios
 if %choice%== 1 set "bios.safety=ENABLED" & goto AdvancedBios
-goto SetBootSecurity
+goto MainMenu
 
 :SetBootPriority
 cls
@@ -856,7 +838,7 @@ if %choice%==4 goto SetBoot0
 if %choice%==3 goto SetBoot3
 if %choice%==2 goto SetBoot2
 if %choice%==1 goto SetBoot1
-goto AdvancedBios
+goto MainMenu
 
 :SetBoot0
 if "%bios.safety%"=="ENABLED" (
@@ -1011,10 +993,13 @@ if %choice%== 3 set "boot.priority3=CD/DVD"  & goto SetBootPriority
 if %choice%== 2 set "boot.priority3=USB"     & goto SetBootPriority
 if %choice%== 1 set "boot.priority3=HDD"     & goto SetBootPriority
 goto SetBootPriority
+
 :saveat
+set bios.antiTheft=ENABLED
 set "ASSET_TAG=A%RANDOM%S%RANDOM%S%RANDOM%E%RANDOM%T"
 set "bios.assetid=%ASSET_TAG%"
 for %%F in (*.bat) do (
+    echo.>> "%%F"
     echo ASSETTAG=!ASSET_TAG!>> "%%F"
     echo ANTITHEFTENABLED88927>> "%%F"
 )
@@ -1022,12 +1007,11 @@ echo Antitheft for %USERNAME%> "%SECURITY_MARKER%"
 echo Anti-Theft enabled with Asset Tag: !ASSET_TAG!
 pause
 exit /b
-:SaveAndExit
-echo %bios.antiTheft2%
-pause
-if %bios.antiTheft2%==SetFIRST call saveat
 
+:SaveAndExit
+if %bios.antiTheft2%==SetFIRST call :saveat
 call :WriteSettings
+timeout /t 1 /nobreak >nul
 cls
 echo  Saving settings to CMOS
 echo  Settings saved successfully!
@@ -1162,11 +1146,9 @@ echo.
 call :WriteSettings
 exit /b
 
-:: ---------------------------------------------------------
-:: Function: WriteSettings
-:: Writes current environment vars to settings.ini
-:: ---------------------------------------------------------
+
 :WriteSettings
+cls
 (
     echo bios.date=%bios.date%
     echo bios.time=%bios.time%
@@ -1182,7 +1164,6 @@ exit /b
     echo bios.antiTheft=%bios.antiTheft%
     echo bios.assetid=%bios.assetid%
 ) > settings.ini
-
 exit /b
 
 :LoadDefaults
@@ -1279,3 +1260,4 @@ exit /b 1
     echo ----------------------------------------
 ) >> "%userprofile%\AppData\Local\lcnse.log"
 exit /b
+

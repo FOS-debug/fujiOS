@@ -1,5 +1,20 @@
 @echo off
 setlocal EnableDelayedExpansion
+set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
+if not exist %mainfilepath% mkdir %mainfilepath%
+if not exist %USERPROFILE%\AppData\Roaming mkdir %USERPROFILE%\AppData\Roaming
+if not exist %USERPROFILE%\AppData\Local mkdir mkdir %USERPROFILE%\AppData\Local
+if not exist %USERPROFILE%\AppData\LocalLow mkdir %USERPROFILE%\AppData\LocalLow
 
 :Coreloaading
 set "CRASHLOADED=1"

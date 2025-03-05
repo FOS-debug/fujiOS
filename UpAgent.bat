@@ -1,5 +1,16 @@
 @echo off
 setlocal enabledelayedexpansion
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
 set SERVER_URL=https://fos-debug.github.io/fujiOS
 set REMOTE_VERSION_FILE=%SERVER_URL%/Version.txt
 set UPDATE_FILE=OperatingSystem.bat

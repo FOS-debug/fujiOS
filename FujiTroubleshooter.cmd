@@ -1,5 +1,17 @@
 @echo off
 setlocal
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
+
 start https://docs.google.com/forms/d/e/1FAIpQLSdGiNb8u3iiSU6cVAjA9vygOxLAVbwEmaooNMHyM_DZMSxSLQ/viewform
 
 REM --- Set up a temporary folder for packaging the files ---

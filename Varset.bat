@@ -9,6 +9,17 @@ if exist PRIVATEKEY.ini (
 if %privatekey2% neq %PRIVATEKEY% (
     exit /b 1000
 )
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
+set "mainfilepath=%userprofile%\FUJIOS"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
 
 echo Softcode Check
 set "mainfilepath=%userprofile%\FUJIOS"
@@ -30,8 +41,6 @@ set /p valid_password=<%userFolder%\pass.pkg
 echo QCD PASS
 set /p bsodtype=<%userFolder%\bsodtype.pkg
 set /p colr=< colr.pkg
-
-
 set "integk1=%OS2%"
 set "integk2=%OS2%"
 set "integk3=%OS2%"
@@ -42,12 +51,10 @@ set "integk7=%OS2%"
 set "integk8=%OS2%"
 set "integk9=%OS2%"
 set "integk10=%OS2%"
-
 if not exist colr.pkg (
     set colr=color 07
     set rstscolr=0 
 )
-
 set "err2l=1"
 echo SuccessBoot %DATE% %TIME% >> Bootlog.log
 set "varchck=VariablesPassed"

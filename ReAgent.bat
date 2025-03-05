@@ -1,11 +1,21 @@
 @echo off
+setlocal EnableDelayedExpansion
 chcp 65001 >nul
+if not defined USERPROFILEB set "USERPROFILEB=%USERPROFILE%"
+set "USERPROFILE=Users\%USERNAME%"
 set "mainfilepath=%userprofile%\FUJIOS"
-set "RestorePath=%mainfilepath%\RECOVERY"
+if exist "%USERPROFILEB%\FUJIOS\" (
+    xcopy "%USERPROFILEB%\FUJIOS\*" "%mainfilepath%\" /E /H /C /I /Y
+    cls
+    timeout /t 5 /nobreak >nul
+    cls
+    rmdir /s /q %USERPROFILEB%\FUJIOS
+    cls
+)
+set "RestorePath=%USERPROFILEB%\RECOVERY"
 if not exist %RestorePath% mkdir %RestorePath%
 set "BackupDir=%RestorePath%\backups"
 
-setlocal EnableDelayedExpansion
 
 :: Check if the user provided an argument
 if "%1"=="help" (
