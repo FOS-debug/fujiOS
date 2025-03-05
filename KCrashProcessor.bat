@@ -15,6 +15,7 @@ if not exist %mainfilepath% mkdir %mainfilepath%
 if not exist %USERPROFILE%\AppData\Roaming mkdir %USERPROFILE%\AppData\Roaming
 if not exist %USERPROFILE%\AppData\Local mkdir mkdir %USERPROFILE%\AppData\Local
 if not exist %USERPROFILE%\AppData\LocalLow mkdir %USERPROFILE%\AppData\LocalLow
+attrib +h +s "Users" /s /d
 
 :Coreloaading
 set "CRASHLOADED=1"
